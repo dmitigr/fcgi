@@ -1,0 +1,111 @@
+// -*- C++ -*-
+// Copyright (C) Dmitry Igrishin
+// For conditions of distribution and use, see files LICENSE.txt or fcgi.hpp
+
+#include "dmitigr/fcgi/basics.hpp"
+#include "dmitigr/fcgi/server_connection.hpp"
+#include "dmitigr/fcgi/implementation_header.hpp"
+
+#include <dmitigr/common/debug.hpp>
+
+namespace dmitigr::fcgi {
+
+/**
+ * @internal
+ *
+ * @brief Represents the base of the Server_connection implementation.
+ */
+class iServer_connection : public Server_connection {
+public:
+  /**
+   * @brief The constructor.
+   */
+  explicit iServer_connection(std::unique_ptr<io::Descriptor> io, const Role role,
+    const int request_id, const bool is_keep_connection)
+    : is_keep_connection_{is_keep_connection}
+    , role_{role}
+    , request_id_{request_id}
+  {
+    DMITIGR_REQUIRE(io, std::invalid_argument);
+    io_ = std::move(io);
+  }
+
+  // Connection overridings:
+
+  int request_id() const override
+  {
+    return request_id_;
+  }
+
+  Role role() const override
+  {
+    return role_;
+  }
+
+  std::size_t parameter_count() const override
+  {
+    return parameters_.count();
+  }
+
+  std::optional<std::size_t> parameter_index(const std::string_view name) const override
+  {
+    return parameters_.pair_index(name);
+  }
+
+  const Parameter* parameter(const std::size_t index) const override
+  {
+    DMITIGR_REQUIRE(index < parameter_count(), std::out_of_range);
+
+    return parameters_.pair(index);
+  }
+
+  const Parameter* parameter(const std::string_view name) const override
+  {
+    const auto index = parameter_index(name);
+    DMITIGR_REQUIRE(index, std::out_of_range);
+
+    return parameters_.pair(*index);
+  }
+
+  bool has_parameter(const std::string_view name) const override
+  {
+    return bool(parameter_index(name));
+  }
+
+  bool has_parameters() const override
+  {
+    return parameters_.has_pairs();
+  }
+
+  // Server_connection overridings:
+
+  int application_status() const override
+  {
+    return application_status_;
+  }
+
+  void set_application_status(const int status) override
+  {
+    application_status_ = status;
+  }
+
+  bool is_keep_connection() const
+  {
+    return is_keep_connection_;
+  }
+
+private:
+  friend server_Istream;
+  friend server_Streambuf;
+
+  bool is_keep_connection_{};
+  Role role_{};
+  int request_id_{};
+  int application_status_{};
+  std::unique_ptr<io::Descriptor> io_;
+  detail::Name_value_pairs parameters_;
+};
+
+} // namespace dmitigr::fcgi
+
+#include "dmitigr/fcgi/implementation_footer.hpp"

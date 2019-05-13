@@ -1,0 +1,13 @@
+*~
+*build*
+*bld*
+*.[oa]
+*.exe
+*.[ip]db
+*.ilk
+*.obj
+.DS_Store
+.idea
+.vs
+
+doc/doxygen
