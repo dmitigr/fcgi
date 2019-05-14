@@ -16,14 +16,14 @@ namespace {
 
 constexpr auto pool_size = 64;
 
-class Request_counter {
+class Busyness_counter {
 public:
-  ~Request_counter()
+  ~Busyness_counter()
   {
     value_--;
   }
 
-  Request_counter()
+  Busyness_counter()
   {
     value_++;
   }
@@ -37,31 +37,38 @@ private:
   static std::atomic<int> value_;
 };
 
-std::atomic<int> Request_counter::value_{};
+std::atomic<int> Busyness_counter::value_{};
 
 bool is_ready()
 {
-  const auto result = Request_counter::value() <= pool_size;
-  //if (!result)
-  //  std::clog << "Overload!\n";
-  return result;
+  return Busyness_counter::value() <= pool_size;
 }
 
 } // namespace
 
 int main(int, char**)
 {
+#ifdef _WIN32
+  static constexpr char* const crlf = "\n";
+  static constexpr char* const crlfcrlf = "\n\n";
+#else
+  static constexpr char* const crlf = "\r\n";
+  static constexpr char* const crlfcrlf = "\r\n\r\n";
+#endif
+
   try {
     static const auto serve = [](auto* server)
     {
       while (true) {
-        if (const auto conn = server->accept_if(is_ready)) {
-          const Request_counter counter;
-          std::this_thread::sleep_for(std::chrono::milliseconds{50});
-          conn->out() << "Content-Type: text/plain\n\n";
-          conn->out() << "Hello from dmitigr::fcgi!";
-          conn->close(); // Optional.
-        }
+        const auto conn = server->accept();
+        if (is_ready()) {
+          const Busyness_counter counter;
+          conn->out() << "Content-Type: text/plain" << crlfcrlf;
+          std::this_thread::sleep_for(std::chrono::milliseconds{50}); // The job imitation.
+          conn->out() << "Hello from dmitigr::fcgi!" << crlf;
+        } else
+          conn->out() << "Status: 503" << crlfcrlf; // Report "Service Unavailable".
+        conn->close(); // Optional.
       }
     };
 

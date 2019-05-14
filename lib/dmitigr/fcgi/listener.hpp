@@ -9,7 +9,6 @@
 #include "dmitigr/fcgi/types_fwd.hpp"
 
 #include <chrono>
-#include <functional>
 #include <memory>
 
 namespace dmitigr::fcgi {
@@ -70,35 +69,19 @@ public:
   virtual bool wait(std::chrono::milliseconds timeout = std::chrono::milliseconds{-1}) = 0;
 
   /**
-   * @brief Accepts a new FastCGI connection, or rejects it for a some reason.
+   * @brief Accepts a new FastCGI connection, or
+   * rejects it in case of protocol violation.
    *
    * @returns An instance of the accepted FastCGI connection.
    *
    * @par Requires
    * `(is_listening())`
    *
-   * @see wait(), accept_if().
+   * @throws `std::runtime_error` in case of protocol violation.
+   *
+   * @see wait().
    */
   virtual std::unique_ptr<Server_connection> accept() = 0;
-
-  /**
-   * @brief Accepts a new FastCGI connection, or rejects it for a some reason.
-   *
-   * The new connection will be also rejected if `(is_ready() == false)`. In this
-   * case the client will be automatically informed about the server overload.
-   *
-   * @param is_ready - the function that will be called just before the creation
-   * of the object of type Server_connection.
-   *
-   * @returns An instance of the accepted FastCGI connection, or `nullptr` if
-   * `(is_ready() == false)`.
-   *
-   * @par Requires
-   * `(is_listening())`
-   *
-   * @see wait(), accept().
-   */
-  virtual std::unique_ptr<Server_connection> accept_if(std::function<bool ()> is_ready) = 0;
 
   /**
    * @brief Stops listening.

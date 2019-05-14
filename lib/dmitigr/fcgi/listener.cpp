@@ -152,11 +152,6 @@ public:
 
   std::unique_ptr<Server_connection> accept() override
   {
-    return accept_if([]() { return true; });
-  }
-
-  std::unique_ptr<Server_connection> accept_if(const std::function<bool ()> is_ready) override
-  {
     auto io = listener_->accept();
     detail::Header header{io.get()};
 
@@ -173,18 +168,15 @@ public:
       const detail::Begin_request_body body{io.get()};
       const auto role = body.role();
       if (role == Role::responder || role == Role::authorizer || role == Role::filter) {
-        if (!is_ready()) {
-          end_request(detail::Protocol_status::overloaded);
-          return nullptr;
-        } else
-          return std::make_unique<stack_buffers_Server_connection>(std::move(io), role, header.request_id(), body.is_keep_conn());
+        return std::make_unique<stack_buffers_Server_connection>(std::move(io), role, header.request_id(), body.is_keep_conn());
       } else {
+        // This is a protocol violation.
         end_request(detail::Protocol_status::unknown_role);
         throw std::runtime_error{"dmitigr::fcgi: unknown role"};
       }
     } else {
       /*
-       * Actualy, this is a "protocol violation". But the FastCGI protocol has no such a protocol status.
+       * Actualy, this is a protocol violation. But the FastCGI protocol has no such a protocol status.
        * Thus, detail::Protocol_status::cant_mpx_conn - is the best suited protocol status code here.
        */
       end_request(detail::Protocol_status::cant_mpx_conn);
