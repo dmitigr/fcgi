@@ -8,7 +8,7 @@ endif()
 
 remove_definitions(-DDMITIGR_FCGI_DLL_BUILDING)
 
-foreach(t hello unit1)
+foreach(t hello hellomt unit1)
   add_executable(${t} ${t}.cpp)
   target_link_libraries(${t} ${dmitigr_fcgi_target} ${dmitigr_common_library})
   if (UNIX)

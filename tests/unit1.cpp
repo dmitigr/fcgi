@@ -57,7 +57,7 @@ int main(int, char**)
 #endif
 
   try {
-    const auto serve = [crlf,crlfcrlf](auto* server)
+    const auto serve = [crlf, crlfcrlf](auto* const server)
     {
       while (true) {
         const auto conn = server->accept();
