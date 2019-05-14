@@ -49,15 +49,15 @@ bool is_ready()
 int main(int, char**)
 {
 #ifdef _WIN32
-  static constexpr char* const crlf = "\n";
-  static constexpr char* const crlfcrlf = "\n\n";
+  const char* const crlf = "\n";
+  const char* const crlfcrlf = "\n\n";
 #else
-  static constexpr char* const crlf = "\r\n";
-  static constexpr char* const crlfcrlf = "\r\n\r\n";
+  const char* const crlf = "\r\n";
+  const char* const crlfcrlf = "\r\n\r\n";
 #endif
 
   try {
-    static const auto serve = [](auto* server)
+    const auto serve = [crlf,crlfcrlf](auto* server)
     {
       while (true) {
         const auto conn = server->accept();
