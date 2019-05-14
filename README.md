@@ -4,7 +4,7 @@ The FastCGI implementation on modern C++ {#mainpage}
 The implementation is aimed to be as simple as possible (maybe even "dumb") for
 better understanding and correctness.
 
-**ATTENTION, this software is "beta" quality, use at your own risk!**
+**ATTENTION, this software is "beta" quality, and the API is a subject to change!**
 
 Any [feedback][dmitigr_mailbox] (*especially results of testing*) is highly appreciated!
 
