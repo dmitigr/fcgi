@@ -8,6 +8,14 @@
 
 int main(int, char**)
 {
+#ifdef _WIN32
+  const char* const crlf = "\n";
+  const char* const crlfcrlf = "\n\n";
+#else
+  const char* const crlf = "\r\n";
+  const char* const crlfcrlf = "\r\n\r\n";
+#endif
+
   try {
     const auto port = 9000;
     const auto backlog = 64;
@@ -15,8 +23,8 @@ int main(int, char**)
     server->listen();
     while (true) {
       if (const auto conn = server->accept()) {
-        conn->out() << "Content-Type: text/plain\r\n\r\n";
-        conn->out() << "Hello from dmitigr::fcgi!";
+        conn->out() << "Content-Type: text/plain" << crlfcrlf;
+        conn->out() << "Hello from dmitigr::fcgi!" << crlf;
       }
     }
   } catch (const std::exception& e) {
