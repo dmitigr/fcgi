@@ -125,6 +125,18 @@ private:
   mutable server_Streambuf streambuf_;
 };
 
+// -----------------------------------------------------------------------------
+
+DMITIGR_FCGI_INLINE std::ostream& crlf(std::ostream& ostr)
+{
+  return ostr.write("\r\n", 2);
+}
+
+DMITIGR_FCGI_INLINE std::ostream& crlfcrlf(std::ostream& ostr)
+{
+  return ostr.write("\r\n\r\n", 4);
+}
+
 } // namespace dmitigr::fcgi
 
 #include "dmitigr/fcgi/implementation_footer.hpp"

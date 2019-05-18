@@ -5,6 +5,7 @@
 #ifndef DMITIGR_FCGI_STREAMS_HPP
 #define DMITIGR_FCGI_STREAMS_HPP
 
+#include "dmitigr/fcgi/dll.hpp"
 #include "dmitigr/fcgi/types_fwd.hpp"
 
 #include <istream>
@@ -67,6 +68,16 @@ private:
 
   using std::ostream::ostream;
 };
+
+/**
+ * @brief Inserts CRLF sequence into the `ostr`.
+ */
+DMITIGR_FCGI_API std::ostream& crlf(std::ostream& ostr);
+
+/**
+ * @brief Inserts CRLFCRLF sequence into the `ostr`.
+ */
+DMITIGR_FCGI_API std::ostream& crlfcrlf(std::ostream& ostr);
 
 } // namespace dmitigr::fcgi
 
