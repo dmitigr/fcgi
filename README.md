@@ -37,7 +37,7 @@ int main(int, char**)
   try {
     const auto port = 9000;
     const auto backlog = 64;
-    const auto server = dmitigr::fcgi::Listener_options::make("0.0.0.0", port, backlog)->make_listener();
+    const auto server = fcgi::Listener_options::make("0.0.0.0", port, backlog)->make_listener();
     server->listen();
     while (true) {
       if (const auto conn = server->accept()) {
