@@ -10,11 +10,9 @@
 #include <thread>
 #include <vector>
 
-namespace fcgi = dmitigr::fcgi;
-
 namespace {
 
-constexpr auto pool_size = 64;
+constexpr std::size_t pool_size = 64;
 
 class Busyness_counter {
 public:
@@ -48,26 +46,19 @@ bool is_ready()
 
 int main(int, char**)
 {
-#ifdef _WIN32
-  const char* const crlf = "\n";
-  const char* const crlfcrlf = "\n\n";
-#else
-  const char* const crlf = "\r\n";
-  const char* const crlfcrlf = "\r\n\r\n";
-#endif
-
+  namespace fcgi = dmitigr::fcgi;
   try {
-    const auto serve = [crlf, crlfcrlf](auto* const server)
+    const auto serve = [](auto* const server)
     {
       while (true) {
         const auto conn = server->accept();
         if (is_ready()) {
           const Busyness_counter counter;
-          conn->out() << "Content-Type: text/plain" << crlfcrlf;
-          std::this_thread::sleep_for(std::chrono::milliseconds{50}); // The job imitation.
-          conn->out() << "Hello from dmitigr::fcgi!" << crlf;
+          conn->out() << "Content-Type: text/plain" << fcgi::crlfcrlf;
+          std::this_thread::sleep_for(std::chrono::milliseconds{50}); // The busyness imitation.
+          conn->out() << "Hello from dmitigr::fcgi!" << fcgi::crlf;
         } else
-          conn->out() << "Status: 503" << crlfcrlf; // Report "Service Unavailable".
+          conn->out() << "Status: 503" << fcgi::crlfcrlf; // Report "Service Unavailable".
         conn->close(); // Optional.
       }
     };
