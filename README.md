@@ -1,7 +1,8 @@
+THIS PROJECT IS A PART OF [CEFEIKA][cefeika] PROJECT NOW!!!
+===========================================================
+
 The FastCGI implementation on modern C++ {#mainpage}
 ====================================================
-
-**THIS PROJECT IS A PART OF [CEFEIKA][cefeika] PROJECT NOW!!!**
 
 The implementation is aimed to be as simple as possible (maybe even "dumb") for
 better understanding and correctness.
