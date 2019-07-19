@@ -1,6 +1,8 @@
 The FastCGI implementation on modern C++ {#mainpage}
 ====================================================
 
+**THIS PROJECT IS A PART OF [CEFEIKA][cefeika] PROJECT NOW!!!**
+
 The implementation is aimed to be as simple as possible (maybe even "dumb") for
 better understanding and correctness.
 
@@ -275,3 +277,4 @@ Copyright (C) Dmitry Igrishin
 [Doxygen]: http://doxygen.org/
 [GCC]: https://gcc.gnu.org/
 [Visual_Studio]: https://www.visualstudio.com/
+[cefeika]: https://github.com/dmitigr/cefeika.git
