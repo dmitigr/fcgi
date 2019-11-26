@@ -14,7 +14,7 @@
 namespace dmitigr::fcgi {
 
 /**
- * @brief Represents an abstraction of a FastCGI listener.
+ * @brief A FastCGI listener.
  */
 class Listener {
 public:
@@ -27,14 +27,14 @@ public:
   /// @{
 
   /**
-   * @returns A new instance of the FastCGI listener.
+   * @returns An instance of the listener.
    */
   static DMITIGR_FCGI_API std::unique_ptr<Listener> make(const Listener_options* options);
 
   /// @}
 
   /**
-   * @returns The options of the listener.
+   * @returns Options of the listener.
    */
   virtual const Listener_options* options() const = 0;
 
@@ -48,12 +48,12 @@ public:
    * @brief Starts listening.
    *
    * @par Requires
-   * `(!is_listening())`.
+   * `!is_listening()`.
    */
   virtual void listen() = 0;
 
   /**
-   * @brief Waits for the next connection to accept.
+   * @brief Waits for a next connection to accept.
    *
    * @param timeout - maximum amount of time to wait before return.
    * A special value of `-1` denotes "eternity".
@@ -62,20 +62,20 @@ public:
    * the `timeout` elapses, or `false` otherwise.
    *
    * @par Requires
-   * `(is_listening())`
+   * `is_listening()`.
    *
    * @see accept(), accept_if().
    */
   virtual bool wait(std::chrono::milliseconds timeout = std::chrono::milliseconds{-1}) = 0;
 
   /**
-   * @brief Accepts a new FastCGI connection, or
-   * rejects it in case of protocol violation.
+   * @brief Accepts a FastCGI connection, or
+   * rejects it in case of a protocol violation.
    *
    * @returns An instance of the accepted FastCGI connection.
    *
    * @par Requires
-   * `(is_listening())`
+   * `is_listening()`.
    *
    * @throws `std::runtime_error` in case of protocol violation.
    *
@@ -89,7 +89,7 @@ public:
   virtual void close() = 0;
 
 private:
-  friend iListener;
+  friend detail::iListener;
 
   Listener() = default;
 };

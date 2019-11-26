@@ -14,25 +14,35 @@
 namespace dmitigr::fcgi {
 
 /**
- * @brief Represents an abstraction of a FastCGI connection.
+ * @brief A parameter of a FastCGI connection.
+ */
+class Connection_parameter {
+public:
+  /**
+   * @returns The parameter name.
+   */
+  virtual std::string_view name() const = 0;
+
+  /**
+   * @returns The parameter value.
+   */
+  virtual std::string_view value() const = 0;
+
+private:
+  friend detail::Name_value;
+
+  Connection_parameter() = default;
+};
+
+/**
+ * @brief A FastCGI connection.
  */
 class Connection {
 public:
   /**
-   * @brief Represents an abstraction of parameter received from a FastCGI client.
+   * @brief The alias of Connection_parameter.
    */
-  class Parameter {
-  public:
-    /**
-     * @returns The parameter name.
-     */
-    virtual std::string_view name() const = 0;
-
-    /**
-     * @returns The parameter value.
-     */
-    virtual std::string_view value() const = 0;
-  };
+  using Parameter = Connection_parameter;
 
   /**
    * @brief The destructor.
@@ -45,7 +55,7 @@ public:
   virtual int request_id() const = 0;
 
   /**
-   * @returns The role of the FastCGI application that serves this connection.
+   * @returns The role of a FastCGI application that serves this connection.
    */
   virtual Role role() const = 0;
 
@@ -55,10 +65,18 @@ public:
   virtual std::size_t parameter_count() const = 0;
 
   /**
-   * @returns The parameter index if parameter with the specified `name` is
-   * present, or `std::nullopt` otherwise.
+   * @returns The parameter index if `has_parameter(name)`, or
+   * `std::nullopt` otherwise.
    */
   virtual std::optional<std::size_t> parameter_index(std::string_view name) const = 0;
+
+  /**
+   * @returns The parameter index.
+   *
+   * @par Requires
+   * `has_parameter(name)`.
+   */
+  virtual std::size_t parameter_index_throw(std::string_view name) const = 0;
 
   /**
    * @returns The parameter.
@@ -95,7 +113,7 @@ public:
    * possibly-thrown exceptions (which are always catched by the destructor).
    *
    * @par Effects
-   * `(is_closed() == true)`.
+   * `is_closed()`.
    */
   virtual void close() = 0;
 

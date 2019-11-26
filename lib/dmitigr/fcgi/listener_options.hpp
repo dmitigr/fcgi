@@ -8,7 +8,8 @@
 #include "dmitigr/fcgi/dll.hpp"
 #include "dmitigr/fcgi/types_fwd.hpp"
 
-#include <dmitigr/common/filesystem_experimental.hpp>
+#include <dmitigr/util/filesystem.hpp>
+#include <dmitigr/util/types_fwd.hpp>
 
 #include <memory>
 #include <optional>
@@ -17,7 +18,7 @@
 namespace dmitigr::fcgi {
 
 /**
- * @brief Represents an abstraction of FastCGI Listener options.
+ * @brief FastCGI Listener options.
  */
 class Listener_options {
 public:
@@ -31,7 +32,7 @@ public:
 
 #ifdef _WIN32
   /**
-   * @returns The new instance of the options for listeners of
+   * @returns A new instance of the options for listeners of
    * Windows Named Pipes (WNP).
    *
    * @param pipe_name - the pipe name.
@@ -42,10 +43,10 @@ public:
   static DMITIGR_FCGI_API std::unique_ptr<Listener_options> make(std::string pipe_name);
 #else
   /**
-   * @returns The new instance of the options for listeners of
+   * @returns A new instance of the options for listeners of
    * Unix Domain Sockets (UDS).
    *
-   * @param path - path to the UDS.
+   * @param path - the path to the socket.
    * @param backlog - the maximum size of the queue of pending connections.
    *
    * @par Effects
@@ -56,14 +57,14 @@ public:
   /**
    * @overload
    *
-   * @returns The new instance of the options for listeners of network protocols.
+   * @returns A new instance of the options for listeners of network.
    *
-   * @param address - the IPv4 or IPv6 address to use for binding on.
+   * @param address - IPv4 or IPv6 address to use for binding on.
    * @param port - the port number to use for binding on.
    * @param backlog - the maximum size of the queue of pending connections.
    *
    * @par Requires
-   * `(port > 0)`
+   * `(port > 0)`.
    *
    * @par Effects
    * `(endpoint_id()->communication_mode() == Communication_mode::net)`.
@@ -71,9 +72,9 @@ public:
   static DMITIGR_FCGI_API std::unique_ptr<Listener_options> make(std::string address, int port, int backlog);
 
   /**
-   * @returns The new instance of the Listener initialized with this instance.
+   * @returns A new instance of the Listener initialized with this instance.
    *
-   * @see Listener::make()
+   * @see Listener::make().
    */
   virtual std::unique_ptr<Listener> make_listener() const = 0;
 
@@ -96,7 +97,7 @@ public:
   virtual std::optional<int> backlog() const = 0;
 
 private:
-  friend iListener_options;
+  friend detail::iListener_options;
 
   Listener_options() = default;
 };

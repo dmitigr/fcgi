@@ -30,5 +30,6 @@
 #include "dmitigr/fcgi/server_connection.hpp"
 #include "dmitigr/fcgi/streambuf.hpp"
 #include "dmitigr/fcgi/streams.hpp"
+#include "dmitigr/fcgi/version.hpp"
 
 #endif  // DMITIGR_FCGI_HPP

@@ -7,14 +7,12 @@
 #include "dmitigr/fcgi/streams.hpp"
 #include "dmitigr/fcgi/implementation_header.hpp"
 
-#include <dmitigr/common/debug.hpp>
+#include <dmitigr/util/debug.hpp>
 
-namespace dmitigr::fcgi {
+namespace dmitigr::fcgi::detail {
 
 /**
- * @internal
- *
- * @brief Represents the base of the Istream implementation.
+ * @brief The base implementation of Istream.
  */
 class iIstream : public Istream {
 private:
@@ -24,9 +22,7 @@ private:
 };
 
 /**
- * @internal
- *
- * @brief Represents Istream implementation for the FastCGI server.
+ * @brief The Istream implementation for a FastCGI server.
  */
 class server_Istream final : public iIstream {
 public:
@@ -39,7 +35,7 @@ public:
   {
     // Reading the parameters.
     DMITIGR_ASSERT(stream_type() == Stream_type::params);
-    connection->parameters_ = detail::Name_value_pairs{*this, 32};
+    connection->parameters_ = detail::Names_values{*this, 32};
     if (!eof() || bad())
       throw std::runtime_error{"dmitigr::fcgi: unexpected input stream state after parameters read attempt"};
 
@@ -50,8 +46,6 @@ public:
       streambuf()->reset_reader(Stream_type::in);
     }
   }
-
-  // Istream overridings:
 
   server_Streambuf* streambuf() const override
   {
@@ -75,9 +69,7 @@ private:
 // =============================================================================
 
 /**
- * @internal
- *
- * @brief Represents the base of the Ostream implementation.
+ * @brief The base implementation of Ostream.
  */
 class iOstream : public Ostream {
 private:
@@ -87,9 +79,7 @@ private:
 };
 
 /**
- * @internal
- *
- * @brief Represents Ostream implementation for the FastCGI server.
+ * @brief The Ostream implementation for a FastCGI server.
  */
 class server_Ostream final : public iOstream {
 public:
@@ -103,8 +93,6 @@ public:
   {
     DMITIGR_ASSERT(stream_type() == Stream_type::out || stream_type() == Stream_type::err);
   }
-
-  // Ostream overridings:
 
   server_Streambuf* streambuf() const override
   {
@@ -125,7 +113,9 @@ private:
   mutable server_Streambuf streambuf_;
 };
 
-// -----------------------------------------------------------------------------
+} // namespace dmitigr::fcgi::detail
+
+namespace dmitigr::fcgi {
 
 DMITIGR_FCGI_INLINE std::ostream& crlf(std::ostream& ostr)
 {

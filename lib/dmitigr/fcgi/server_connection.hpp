@@ -10,7 +10,7 @@
 namespace dmitigr::fcgi {
 
 /**
- * @brief Represents a FastCGI server connection.
+ * @brief A FastCGI server connection.
  */
 class Server_connection : public Connection {
 public:
@@ -41,15 +41,12 @@ public:
    * @brief Sets the application status code for transmitting to the client
    * upon closing the connection.
    *
-   * @remarks This is a status code that the CGI program would have returned
-   * via the exit() system call.
-   *
    * @see application_status().
    */
   virtual void set_application_status(int status) = 0;
 
 private:
-  friend iServer_connection;
+  friend detail::iServer_connection;
 
   Server_connection() = default;
 };

@@ -12,7 +12,7 @@
 namespace dmitigr::fcgi {
 
 /**
- * @brief An abstraction of the FastCGI stream buffer.
+ * @brief A FastCGI stream buffer.
  */
 class Streambuf : public std::streambuf {
 protected:
@@ -35,8 +35,8 @@ protected:
   virtual Streambuf* setbuf(char_type* buffer, std::streamsize size) override = 0;
 
   /**
-   * @brief Sends the put area if `(pbase() != nullptr && pbase() != pptr())`
-   * to the client.
+   * @brief Sends the put area to a FastCGI client if
+   * `(pbase() != nullptr && pbase() != pptr())`.
    *
    * @returns Zero on success, or non-zero otherwise.
    *
@@ -89,7 +89,7 @@ protected:
   /// @}
 
 private:
-  friend iStreambuf;
+  friend detail::iStreambuf;
 
   Streambuf() = default;
 };

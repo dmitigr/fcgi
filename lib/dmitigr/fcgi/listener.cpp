@@ -9,28 +9,26 @@
 #include "dmitigr/fcgi/streams.hpp"
 #include "dmitigr/fcgi/implementation_header.hpp"
 
-#include <dmitigr/common/debug.hpp>
-#include <dmitigr/common/net.hpp>
+#include <dmitigr/util/debug.hpp>
+#include <dmitigr/util/net.hpp>
 
 #include <array>
 #include <limits>
 
-namespace dmitigr::fcgi {
+namespace dmitigr::fcgi::detail {
 
 /**
- * @internal
- *
- * @brief Represents Server_connection with stack-allocated stream buffers.
+ * @brief The Server_connection implementation based on stack-allocated buffers.
  */
 class stack_buffers_Server_connection final : public iServer_connection {
 public:
-  /** Denotes the size of the buffer of the stream of type Stream_type::in. */
+  /** The size of the buffer of Stream_type::in. */
   static constexpr std::size_t in_buffer_size  = 16384;
 
-  /** Denotes the size of the buffer of the stream of type Stream_type::out. */
+  /** The size of the buffer of Stream_type::out. */
   static constexpr std::size_t out_buffer_size = 16384;
 
-  /** Denotes the size of the buffer of the stream of type Stream_type::err. */
+  /** The size of the buffer of Stream_type::err. */
   static constexpr std::size_t err_buffer_size =  1024;
 
   /**
@@ -44,7 +42,7 @@ public:
       // -----------------------------------------------------------------------
       // TODO: support for Begin_request_body::Flags::keep_conn flag.
       // To make it possible the io_ object should be passed back to the
-      // Listener which can reuse it for the new Server_connection.
+      // Listener which can reuse it for a new Server_connection.
       //
       // Begin_request_body::Flags::keep_conn flag has no effect if any stream is with failbit set.
       // const bool keep_conn = keep_connection() && !err().fail() && !out().fail() && !in().fail();
@@ -68,7 +66,9 @@ public:
     static_assert(err_buffer_size <= std::numeric_limits<std::streamsize>::max());
   }
 
-  // Connection overridings:
+  // ---------------------------------------------------------------------------
+  // Connection overridings
+  // ---------------------------------------------------------------------------
 
   void close() override
   {
@@ -83,7 +83,9 @@ public:
     return (err().is_closed() && out().is_closed() && in().is_closed());
   }
 
-  // Server_connection overridings:
+  // ---------------------------------------------------------------------------
+  // Server_connection overridings
+  // ---------------------------------------------------------------------------
 
   server_Istream& in() override
   {
@@ -111,14 +113,12 @@ private:
 };
 
 /**
- * @internal
- *
- * @brief Represents the Listener implementation.
+ * @brief The implementation of Listener.
  */
 class iListener final : public Listener {
 public:
   /**
-   * @brief The constructor.
+   * @brief See Listener::make().
    */
   explicit iListener(const Listener_options* const options)
   {
@@ -127,8 +127,6 @@ public:
     listener_ = net::Listener::make(iopts->options_.get());
     listener_options_ = iListener_options{iopts->options_->to_listener_options()};
   }
-
-  // Listener overridings:
 
   const Listener_options* options() const override
   {
@@ -199,8 +197,13 @@ std::unique_ptr<Listener> iListener_options::make_listener() const // declared i
   return std::make_unique<iListener>(this);
 }
 
+} // namespace dmitigr::fcgi::detail
+
+namespace dmitigr::fcgi {
+
 DMITIGR_FCGI_INLINE std::unique_ptr<Listener> Listener::make(const Listener_options* const options)
 {
+  using detail::iListener;
   return std::make_unique<iListener>(options);
 }
 

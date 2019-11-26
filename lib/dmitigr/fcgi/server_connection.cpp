@@ -6,14 +6,12 @@
 #include "dmitigr/fcgi/server_connection.hpp"
 #include "dmitigr/fcgi/implementation_header.hpp"
 
-#include <dmitigr/common/debug.hpp>
+#include <dmitigr/util/debug.hpp>
 
-namespace dmitigr::fcgi {
+namespace dmitigr::fcgi::detail {
 
 /**
- * @internal
- *
- * @brief Represents the base of the Server_connection implementation.
+ * @brief The base implementation of the Server_connection.
  */
 class iServer_connection : public Server_connection {
 public:
@@ -30,7 +28,9 @@ public:
     io_ = std::move(io);
   }
 
-  // Connection overridings:
+  // ---------------------------------------------------------------------------
+  // Connection overridings
+  // ---------------------------------------------------------------------------
 
   int request_id() const override
   {
@@ -44,7 +44,7 @@ public:
 
   std::size_t parameter_count() const override
   {
-    return parameters_.count();
+    return parameters_.pair_count();
   }
 
   std::optional<std::size_t> parameter_index(const std::string_view name) const override
@@ -52,24 +52,31 @@ public:
     return parameters_.pair_index(name);
   }
 
-  const Parameter* parameter(const std::size_t index) const override
+  std::size_t parameter_index_throw(const std::string_view name) const override
   {
-    DMITIGR_REQUIRE(index < parameter_count(), std::out_of_range);
+    const auto result = parameter_index(name);
+    DMITIGR_REQUIRE(result, std::out_of_range,
+      "the instance of dmitigr::fcgi::Server_connection has no parameter \"" + std::string{name} + "\"");
+    return *result;
+  }
 
+  const detail::Name_value* parameter(const std::size_t index) const override
+  {
+    DMITIGR_REQUIRE(index < parameter_count(), std::out_of_range,
+      "invalid parameter index (" + std::to_string(index) + ")"
+      " of the dmitigr::fcgi::Server_connection instance");
     return parameters_.pair(index);
   }
 
-  const Parameter* parameter(const std::string_view name) const override
+  const detail::Name_value* parameter(const std::string_view name) const override
   {
-    const auto index = parameter_index(name);
-    DMITIGR_REQUIRE(index, std::out_of_range);
-
-    return parameters_.pair(*index);
+    const auto index = parameter_index_throw(name);
+    return parameters_.pair(index);
   }
 
   bool has_parameter(const std::string_view name) const override
   {
-    return bool(parameter_index(name));
+    return static_cast<bool>(parameter_index(name));
   }
 
   bool has_parameters() const override
@@ -77,7 +84,9 @@ public:
     return parameters_.has_pairs();
   }
 
-  // Server_connection overridings:
+  // ---------------------------------------------------------------------------
+  // Server_connection overridings
+  // ---------------------------------------------------------------------------
 
   int application_status() const override
   {
@@ -103,9 +112,9 @@ private:
   int request_id_{};
   int application_status_{};
   std::unique_ptr<io::Descriptor> io_;
-  detail::Name_value_pairs parameters_;
+  detail::Names_values parameters_;
 };
 
-} // namespace dmitigr::fcgi
+} // namespace dmitigr::fcgi::detail
 
 #include "dmitigr/fcgi/implementation_footer.hpp"

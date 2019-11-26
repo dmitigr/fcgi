@@ -7,8 +7,8 @@
 #include "dmitigr/fcgi/streambuf.hpp"
 #include "dmitigr/fcgi/implementation_header.hpp"
 
-#include <dmitigr/common/debug.hpp>
-#include <dmitigr/common/math.hpp>
+#include <dmitigr/util/debug.hpp>
+#include <dmitigr/util/math.hpp>
 
 #include <algorithm>
 #include <array>
@@ -16,12 +16,10 @@
 #include <limits>
 #include <ostream>
 
-namespace dmitigr::fcgi {
+namespace dmitigr::fcgi::detail {
 
 /**
- * @internal
- *
- * @brief Represents the base of the Streambuf implementation.
+ * @brief The base implementation of Streambuf.
  */
 class iStreambuf : public Streambuf {
 private:
@@ -31,11 +29,7 @@ private:
 };
 
 /**
- * @internal
- *
- * @brief The implementation of the std::streambuf for the FastCGI server.
- *
- * @remarks Non-copyable, non-movable.
+ * @brief The implementation of the `std::streambuf` for a FastCGI server.
  */
 class server_Streambuf final : public iStreambuf {
 public:
@@ -72,13 +66,16 @@ public:
   }
 
   /**
-   * @brief If this instance is a streambuf of the output stream (either err or out)
-   * then transmits the end records to the FastCGI client and sets `is_end_of_stream_`
-   * to `true`. (The transmission of the end records takes place if and only if it is
-   * not contradicts the protocol.) Also, unsets the both get area and put area.
+   * @brief Closes the stream.
+   *
+   * If this instance represents the streambuf of the output stream (either
+   * Stream_type::err or Stream_type::out) then transmits the end records to
+   * the FastCGI client and sets `is_end_of_stream_` to `true`. (The
+   * transmission of the end records takes place if and only if it is not
+   * contradicts the protocol.)
    *
    * @par Effects
-   * `is_closed()`
+   * `is_closed()`. Also, unsets both the get area and the put area.
    */
   void close()
   {
@@ -371,19 +368,19 @@ protected:
   }
 
 private:
-  friend class server_Istream;
+  friend server_Istream;
 
   /**
-   * @brief Represents the type of a result value of process_header().
+   * @brief A result of process_header().
    */
   enum class Process_header_result {
-    /** Denotes that the request is rejected. */
+    /** A request is rejected. */
     request_rejected,
-    /** Denotes that the management record processed. */
+    /** A management record processed. */
     management_processed,
-    /** Denotes that the content from the client must be consumed. */
+    /** A content from a client must be consumed. */
     content_must_be_consumed,
-    /** Denotes that the content from the client must be discarded. */
+    /** A content from a client must be discarded. */
     content_must_be_discarded
   };
 
@@ -400,7 +397,7 @@ private:
   std::streamsize unread_padding_length_{};
   iServer_connection* const connection_{};
 
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
 
   bool is_invariant_ok() const
   {
@@ -441,26 +438,30 @@ private:
     return result;
   }
 
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
 
   /**
-   * @brief Processes the record by the header info.
+   * @brief Processes a record by the header info.
    *
-   * (1) If `header` is the header of begin-request record then rejecting the request.
-   * (2) If `header` is the header of management record, then responds with get-values-result or unknown-type record.
-   * (3) If `header` is the header of stream record then do nothing.
+   *   - (1) If `header` is the header of begin-request record then rejecting
+   *     the request;
+   *   - (2) If `header` is the header of management record, then responds with
+   *     get-values-result or unknown-type record;
+   *   - (3) If `header` is the header of stream record then do nothing.
    *
    * @returns
    * In case (1): Process_header_result::request_rejected.
    * In case (2): Process_header_result::management_processed.
    * In case (3):
-   *   a) Process_header_result::content_must_be_discarded if the `(header.request_id() != connection_->request_id())`;
-   *   b) Process_header_result::content_must_be_consumed if and only if the `(header.record_type() == type_)`.
+   *   a) Process_header_result::content_must_be_discarded
+   *      if `(header.request_id() != connection_->request_id())`;
+   *   b) Process_header_result::content_must_be_consumed
+   *      if and only if `(header.record_type() == type_)`.
    *
    * @throws `std::runtime_error` in case of (1) or on protocol violation.
    *
    * @par Effects
-   * In all cases: `(unread_content_length_ == header.content_length() && unread_padding_length_ == header.padding_length())`.
+   * In all cases: `(unread_content_length_ == header.content_length() && unread_padding_length_ == header.padding_length())`;
    * In case (2): the effects of underflow().
    */
   Process_header_result process_header(const detail::Header header)
@@ -497,7 +498,7 @@ private:
         const auto variables = [&]()
         {
           std::istream stream{this};
-          return detail::Name_value_pairs{stream, 3};
+          return detail::Names_values{stream, 3};
         }();
         if (unread_content_length_ > 0)
           end_request_protocol_violation();
@@ -505,7 +506,7 @@ private:
         // Filling up the content of get-values-result.
         const auto content_offset = std::begin(record) + sizeof(detail::Header);
         auto p = content_offset;
-        const auto variables_count = variables.count();
+        const auto variables_count = variables.pair_count();
         for (std::size_t i = 0; i < variables_count; ++i) {
           const auto name = variables.pair(i)->name();
           char value{};
@@ -569,7 +570,7 @@ private:
    * @brief Resets the input stream to read the data of the specified type.
    *
    * @par Requires
-   * `(is_reader())`.
+   * `is_reader()`.
    */
   void reset_reader(const Type type)
   {
@@ -585,6 +586,6 @@ private:
   }
 };
 
-} // namespace dmitigr::fcgi
+} // namespace dmitigr::fcgi::detail
 
 #include "dmitigr/fcgi/implementation_footer.hpp"

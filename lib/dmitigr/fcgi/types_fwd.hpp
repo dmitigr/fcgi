@@ -6,10 +6,7 @@
 #define DMITIGR_FCGI_TYPES_FWD_HPP
 
 /**
- * @brief Public API.
- *
- * @warning The nested namespaces `detail` contains implementation details
- * which should not be used in the client code.
+ * @brief The API.
  */
 namespace dmitigr::fcgi {
 
@@ -17,37 +14,36 @@ enum class Role;
 enum class Stream_type;
 
 class Listener;
-class iListener;
-
 class Listener_options;
-class iListener_options;
 
+class Connection_parameter;
 class Connection;
 class Server_connection;
-class iServer_connection;
 
 class Streambuf;
-class iStreambuf;
-class server_Streambuf;
 
 class Stream;
 class Istream;
+class Ostream;
+
+/**
+ * @brief The implementation details.
+ */
+namespace detail {
+class iListener;
+class iListener_options;
+class iServer_connection;
+class iStreambuf;
+class server_Streambuf;
 class iIstream;
 class server_Istream;
-class Ostream;
 class iOstream;
 class server_Ostream;
 
-/**
- * @brief The namespace dmitigr::fcgi::detail contains an implementation details.
- */
-namespace detail {
+class Name_value;
+class Names_values;
 } // namespace detail
 
 } // namespace dmitigr::fcgi
-
-namespace dmitigr::net {
-class Endpoint_id;
-} // namespace dmitigr::net
 
 #endif  // DMITIGR_FCGI_TYPES_FWD_HPP

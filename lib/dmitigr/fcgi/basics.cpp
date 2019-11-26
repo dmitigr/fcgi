@@ -6,9 +6,9 @@
 #include "dmitigr/fcgi/connection.hpp"
 #include "dmitigr/fcgi/implementation_header.hpp"
 
-#include <dmitigr/common/debug.hpp>
-#include <dmitigr/common/io.hpp>
-#include <dmitigr/common/math.hpp>
+#include <dmitigr/util/debug.hpp>
+#include <dmitigr/util/io.hpp>
+#include <dmitigr/util/math.hpp>
 
 #include <algorithm>
 #include <array>
@@ -23,18 +23,16 @@
 namespace dmitigr::fcgi::detail {
 
 /**
- * @internal
- *
- * @brief Represents a type of record.
+ * @brief A type of record.
  */
 enum class Record_type : unsigned char {
-  /** Denotes the begin request record. */
+  /** A begin request record. */
   begin_request = 1,
 
-  /** Denotes the abort request record. */
+  /** An abort request record. */
   abort_request = 2,
 
-  /** Denotes the end of request record. */
+  /** An end of request record. */
   end_request = 3,
 
   /** See Stream_type::params. */
@@ -53,70 +51,65 @@ enum class Record_type : unsigned char {
   data = static_cast<unsigned char>(Stream_type::data),
 
   /**
-   * Denotes the management record that is the query from the HTTP server
-   * about specific variables within the FastCGI server (or an application).
-   * (A FastCGI server may receive such a query record at any time.)
+   * A management record that is a query from a HTTP server about
+   * specific variables within a FastCGI server (or an application).
+   * (The FastCGI server may receive such a query record at any time.)
    */
   get_values = 9,
 
   /**
-   * Denotes the response to the get-values management record.
+   * A response to a get-values management record.
    * (Only known variables can be included to the response.)
    */
   get_values_result = 10,
 
-  /** Denotes the response to the unknown management record. */
+  /** A response to an unknown management record. */
   unknown_type = 11
 };
 
 /**
- * @internal
- *
- * @brief Represents a protocol-level status code.
+ * @brief A protocol-level status code.
  */
 enum class Protocol_status : unsigned char {
-  /** Denotes the normal end of request. */
+  /** A normal end of request. */
   request_complete = 0,
 
   /**
-   * Denotes rejecting a new request when the HTTP server sends concurrent
-   * requests over one connection to the FastCGI server that is designed to
-   * process one request at a time per connection.
+   * Rejecting a new request when a HTTP server sends concurrent requests
+   * over one connection to a FastCGI server that is designed to process
+   * one request at a time per connection.
    */
   cant_mpx_conn = 1,
 
   /**
-   * Denotes rejecting a new request when the application runs out of some
+   * Rejecting a new request when an application runs out of some
    * resource, e.g. database connections.
    */
   overloaded = 2,
 
   /**
-   * Denotes rejecting a new request when the HTTP server has specified a
-   * role that is unknown to the FastCGI server.
+   * Rejecting a new request when a HTTP server has specified a
+   * role that is unknown to a FastCGI server.
    */
   unknown_role = 3
 };
 
 /**
- * @internal
- *
- * @brief Represents a FastCGI record header.
+ * @brief A FastCGI record header.
  */
-struct Header {
+struct Header final {
   /**
-   * @brief Represents so called "null request ID"
-   * used (only) by management records.
+   * @brief The special ID of a request that used by management records only.
    */
   constexpr static int null_request_id = 0;
 
   /**
-   * @brief Represents a maximum content length.
+   * @brief The maximum content length.
    */
   constexpr static std::size_t max_content_length = 65535;
 
   /**
-   * @brief Represents a maximum padding length.
+   * @brief The maximum padding length.
    */
   constexpr static std::size_t max_padding_length = 255;
 
@@ -126,7 +119,7 @@ struct Header {
   Header() = default;
 
   /**
-   * @brief The constructor. Reads the header from `io`.
+   * @brief Constructs by reading the header from `io`.
    */
   explicit Header(io::Descriptor* const io)
   {
@@ -201,7 +194,7 @@ struct Header {
   }
 
   /**
-   * @returns The type of record this header is represents.
+   * @returns The type of record to which this header belongs.
    */
   Record_type record_type() const
   {
@@ -209,8 +202,8 @@ struct Header {
   }
 
   /**
-   * @returns `true` if this header represents the header of the management
-   * record, or `false` otherwise.
+   * @returns `true` if this header is represents a header
+   * of a management record, or `false` otherwise.
    */
   bool is_management_record() const
   {
@@ -229,19 +222,17 @@ private:
 };
 
 /**
- * @internal
- *
- * @brief Represents a FastCGI begin-request record body.
+ * @brief A FastCGI begin-request record body.
  */
-struct Begin_request_body {
+struct Begin_request_body final {
   /**
-   * @brief Represents control bits.
+   * @brief Control bits.
    */
   enum class Flags : unsigned char {
     /**
-     * Denotes the bit that instructs the FastCGI server do not close the
-     * connection after responding to this request. (The HTTP server retains
-     * responsibility for the connection in this case.)
+     * The bit that instructs a FastCGI server do not close a connection after
+     * responding to the request. (A HTTP server retains responsibility for the
+     * connection in this case.)
      */
     keep_conn = 1
   };
@@ -252,7 +243,7 @@ struct Begin_request_body {
   Begin_request_body() = default;
 
   /**
-   * @brief The constructor. Reads the record from `io`.
+   * @brief Constructs by reading the record from `io`.
    */
   explicit Begin_request_body(io::Descriptor* const io)
   {
@@ -287,11 +278,9 @@ private:
 };
 
 /**
- * @internal
- *
- * @brief Represents a FastCGI end-request body.
+ * @brief A FastCGI end-request body.
  */
-struct End_request_body {
+struct End_request_body final {
   /**
    * @brief The default constructor.
    */
@@ -318,11 +307,9 @@ private:
 };
 
 /**
- * @internal
- *
- * @brief Represents a FastCGI end-request record.
+ * @brief A FastCGI end-request record.
  */
-struct End_request_record {
+struct End_request_record final {
   /**
    * @brief The constructor.
    */
@@ -345,11 +332,9 @@ private:
 };
 
 /**
- * @internal
- *
- * @brief Represents FastCGI unknown-type record body.
+ * @brief A FastCGI unknown-type record body.
  */
-struct Unknown_type_body {
+struct Unknown_type_body final {
   /**
    * @brief The constructor.
    */
@@ -363,11 +348,9 @@ private:
 };
 
 /**
- * @internal
- *
- * @brief Represents FastCGI unknown-type record.
+ * @brief A FastCGI unknown-type record.
  */
-struct Unknown_type_record {
+struct Unknown_type_record final {
   /**
    * @brief The constructor.
    */
@@ -384,62 +367,58 @@ private:
 };
 
 // -----------------------------------------------------------------------------
+// Names_values
+// -----------------------------------------------------------------------------
 
 /**
- * @internal
- *
- * @brief Represents an abstraction of name-value pairs used to transmit
- * variable-length values.
+ * @brief A value type of Names_values container.
  */
-class Name_value_pairs {
+class Name_value final : public Connection_parameter {
 public:
   /**
-   * @internal
-   *
-   * @brief Represents an abstraction of a name-value pair of Name_value_pairs.
+   * @brief The constructor.
    */
-  class Pair : public Connection::Parameter {
-  public:
-    /**
-     * @brief The constructor.
-     */
-    Pair(std::unique_ptr<char[]> data, const std::size_t name_size, const std::size_t value_size)
-      : data_{std::move(data)}
-      , name_size_{name_size}
-      , value_size_{value_size}
-    {}
+  Name_value(std::unique_ptr<char[]> data,
+    const std::size_t name_size, const std::size_t value_size)
+    : data_{std::move(data)}
+    , name_size_{name_size}
+    , value_size_{value_size}
+  {}
 
-    /**
-     * @returns The name.
-     */
-    std::string_view name() const override
-    {
-      return std::string_view{data_.get(), name_size_};
-    }
+  /**
+   * @returns The name.
+   */
+  std::string_view name() const override
+  {
+    return std::string_view{data_.get(), name_size_};
+  }
 
-    /**
-     * @returns The value.
-     */
-    std::string_view value() const override
-    {
-      return std::string_view{data_.get() + name_size_, value_size_};
-    }
+  /**
+   * @returns The value.
+   */
+  std::string_view value() const override
+  {
+    return std::string_view{data_.get() + name_size_, value_size_};
+  }
 
-  private:
-    std::unique_ptr<char[]> data_;
-    std::size_t name_size_{};
-    std::size_t value_size_{};
-  };
+private:
+  std::unique_ptr<char[]> data_;
+  std::size_t name_size_{};
+  std::size_t value_size_{};
+};
 
+/**
+ * @brief A container of name-value pairs to store variable-length values.
+ */
+class Names_values final {
+public:
   /**
    * @brief The default constructor.
    */
-  Name_value_pairs() = default;
+  Names_values() = default;
 
   /**
-   * @brief The constructor.
-   *
-   * Reads the name-value pairs from the given `stream`.
+   * @brief Constructs by reading the given `stream`.
    *
    * @param stream - the stream to read from;
    * @param reserve - the number of name-value pairs for which memory should
@@ -451,10 +430,10 @@ public:
    *   - the name;
    *   - the value.
    *
-   *  Lengths of 127 bytes and less are encoded in one byte, while longer lengths
-   *  are always encoded in four bytes.
+   * @remarks Lengths of 127 bytes and less are encoded in one byte,
+   * while longer lengths are always encoded in four bytes.
    */
-  explicit Name_value_pairs(std::istream& stream, const std::size_t reserve = 0)
+  explicit Names_values(std::istream& stream, const std::size_t reserve = 0)
   {
     DMITIGR_ASSERT(stream && (reserve <= 64));
 
@@ -503,7 +482,7 @@ public:
   /**
    * @returns The pair count.
    */
-  std::size_t count() const
+  std::size_t pair_count() const
   {
     return pairs_.size();
   }
@@ -530,9 +509,9 @@ public:
   /**
    * @returns The pair by the given `index`.
    */
-  const Pair* pair(const std::size_t index) const
+  const Name_value* pair(const std::size_t index) const
   {
-    DMITIGR_ASSERT(index < count());
+    DMITIGR_ASSERT(index < pair_count());
     return &pairs_[index];
   }
 
@@ -561,7 +540,7 @@ public:
   }
 
 private:
-  std::vector<Pair> pairs_;
+  std::vector<Name_value> pairs_;
 };
 
 } // namespace dmitigr::fcgi::detail

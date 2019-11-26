@@ -6,7 +6,7 @@
 #define DMITIGR_FCGI_DLL_HPP
 
 #ifdef _WIN32
-  #ifdef DMITIGR_FCGI_DLL_BUILDING
+  #ifdef DMITIGR_CEFEIKA_DLL_BUILDING
     #define DMITIGR_FCGI_API __declspec(dllexport)
   #else
     #if DMITIGR_FCGI_DLL

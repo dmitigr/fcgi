@@ -5,20 +5,18 @@
 #include "dmitigr/fcgi/listener_options.hpp"
 #include "dmitigr/fcgi/implementation_header.hpp"
 
-#include <dmitigr/common/debug.hpp>
-#include <dmitigr/common/net.hpp>
+#include <dmitigr/util/debug.hpp>
+#include <dmitigr/util/net.hpp>
 
-namespace dmitigr::fcgi {
+namespace dmitigr::fcgi::detail {
 
 /**
- * @internal
- *
- * @brief Represents the Listener_options implementation.
+ * @brief The implementation of Listener_options.
  */
 class iListener_options final : public Listener_options {
 public:
   /**
-   * @brief The constructor.
+   * @brief See Listener_options::make().
    */
   explicit iListener_options(std::unique_ptr<net::Listener_options> options)
     : options_{std::move(options)}
@@ -28,14 +26,14 @@ public:
 
 #ifdef _WIN32
   /**
-   * @brief The constructor.
+   * @brief See Listener_options::make().
    */
   explicit iListener_options(std::string pipe_name)
     : iListener_options{net::Listener_options::make(std::move(pipe_name))}
   {}
 #else
   /**
-   * @brief The constructor.
+   * @brief See Listener_options::make().
    */
   iListener_options(std::filesystem::path path, const int backlog)
     : iListener_options{net::Listener_options::make(std::move(path), backlog)}
@@ -43,7 +41,7 @@ public:
 #endif
 
   /**
-   * @brief The constructor.
+   * @brief See Listener_options::make().
    */
   iListener_options(std::string address, const int port, const int backlog)
     : iListener_options{net::Listener_options::make(std::move(address), port, backlog)}
@@ -73,28 +71,30 @@ private:
 
   std::unique_ptr<net::Listener_options> options_;
 
-  // ---------------------------------------------------------------------------
-
   bool is_invariant_ok() const
   {
     return bool(options_);
   }
 
-  // ------------------------------------------------------------------------------
-
   iListener_options() = default;
 };
+
+} // namespace dmitigr::fcgi::detail
+
+namespace dmitigr::fcgi {
 
 #ifdef _WIN32
 DMITIGR_FCGI_INLINE std::unique_ptr<Listener_options>
 Listener_options::make(std::string pipe_name)
 {
+  using detail::iListener_options;
   return std::make_unique<iListener_options>(std::move(pipe_name));
 }
 #else
 DMITIGR_FCGI_INLINE std::unique_ptr<Listener_options>
 Listener_options::make(std::filesystem::path path, const int backlog)
 {
+  using detail::iListener_options;
   return std::make_unique<iListener_options>(std::move(path), backlog);
 }
 #endif
@@ -102,6 +102,7 @@ Listener_options::make(std::filesystem::path path, const int backlog)
 DMITIGR_FCGI_INLINE std::unique_ptr<Listener_options>
 Listener_options::make(std::string address, const int port, const int backlog)
 {
+  using detail::iListener_options;
   return std::make_unique<iListener_options>(std::move(address), port, backlog);
 }
 
