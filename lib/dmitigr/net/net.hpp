@@ -1,14 +1,14 @@
 // -*- C++ -*-
 // Copyright (C) Dmitry Igrishin
-// For conditions of distribution and use, see files LICENSE.txt or util.hpp
+// For conditions of distribution and use, see files LICENSE.txt or net.hpp
 
-#ifndef DMITIGR_UTIL_NET_HPP
-#define DMITIGR_UTIL_NET_HPP
+#ifndef DMITIGR_NET_NET_HPP
+#define DMITIGR_NET_NET_HPP
 
+#include "dmitigr/fs.hpp"
+#include "dmitigr/net/dll.hpp"
+#include "dmitigr/net/types_fwd.hpp"
 #include "dmitigr/util/basics.hpp"
-#include "dmitigr/util/dll.hpp"
-#include "dmitigr/util/filesystem.hpp"
-#include "dmitigr/util/types_fwd.hpp"
 
 #include <chrono>
 #include <memory>
@@ -51,7 +51,7 @@ public:
   /**
    * @brief The destructor.
    */
-  DMITIGR_UTIL_API ~Socket_guard();
+  DMITIGR_NET_API ~Socket_guard();
 
   /**
    * @brief The default constructor.
@@ -59,7 +59,7 @@ public:
    * @par Effects
    * `(socket() == invalid_socket())`.
    */
-  DMITIGR_UTIL_API Socket_guard() noexcept;
+  DMITIGR_NET_API Socket_guard() noexcept;
 
   /**
    * @overload
@@ -67,7 +67,7 @@ public:
    * @par Effects
    * `(socket() == socket)`.
    */
-  DMITIGR_UTIL_API explicit Socket_guard(Socket_native socket) noexcept;
+  DMITIGR_NET_API explicit Socket_guard(Socket_native socket) noexcept;
 
   /** Non-copyable. */
   Socket_guard(const Socket_guard&) = delete;
@@ -78,32 +78,32 @@ public:
   /**
    * @brief The move constructor.
    */
-  DMITIGR_UTIL_API Socket_guard(Socket_guard&& rhs) noexcept;
+  DMITIGR_NET_API Socket_guard(Socket_guard&& rhs) noexcept;
 
   /**
    * @brief The move assignment operator.
    */
-  DMITIGR_UTIL_API Socket_guard& operator=(Socket_guard&& rhs) noexcept;
+  DMITIGR_NET_API Socket_guard& operator=(Socket_guard&& rhs) noexcept;
 
   /**
    * @brief The swap operation.
    */
-  DMITIGR_UTIL_API void swap(Socket_guard& other) noexcept;
+  DMITIGR_NET_API void swap(Socket_guard& other) noexcept;
 
   /**
    * @returns The underlying socket.
    */
-  DMITIGR_UTIL_API Socket_native socket() const noexcept;
+  DMITIGR_NET_API Socket_native socket() const noexcept;
 
   /**
    * @returns `socket()`
    */
-  DMITIGR_UTIL_API operator Socket_native() const noexcept;
+  DMITIGR_NET_API operator Socket_native() const noexcept;
 
   /**
    * @returns Zero on success, or non-zero otherwise.
    */
-  DMITIGR_UTIL_API int close() noexcept;
+  DMITIGR_NET_API int close() noexcept;
 
 private:
   Socket_native socket_;
@@ -112,18 +112,18 @@ private:
 /**
  * @returns The value that denotes an invalid socket.
  */
-DMITIGR_UTIL_API Socket_native invalid_socket();
+DMITIGR_NET_API Socket_native invalid_socket();
 
 /**
  * @returns `true` if the `socket` is valid, or `false` otherwise.
  */
-DMITIGR_UTIL_API bool is_socket_valid(Socket_native socket);
+DMITIGR_NET_API bool is_socket_valid(Socket_native socket);
 
 /**
  * @returns `true` if the `function_result` is represents an indication
  * of the socket API function failure, or `false` otherwise.
  */
-DMITIGR_UTIL_API bool is_socket_error(int function_result);
+DMITIGR_NET_API bool is_socket_error(int function_result);
 
 // =============================================================================
 
@@ -183,15 +183,20 @@ public:
   virtual ~Ip_address() = default;
 
   /**
-   * @returns A new instance of this class.
+   * @returns A new instance of this class from string representation.
    */
-  static DMITIGR_UTIL_API std::unique_ptr<Ip_address> make(const std::string& str);
+  static DMITIGR_NET_API std::unique_ptr<Ip_address> make(const std::string& str);
+
+  /**
+   * @returns A new instance of this class from binary representation.
+   */
+  static DMITIGR_NET_API std::unique_ptr<Ip_address> make_from_binary(std::string_view bin);
 
   /**
    * @returns `true` if `text` is either valid IPv4 or IPv6 address, or
    * `false` otherwise.
    */
-  static DMITIGR_UTIL_API bool is_valid(const std::string& str);
+  static DMITIGR_NET_API bool is_valid(const std::string& str);
 
   /**
    * @returns The family of the IP address.
@@ -294,7 +299,7 @@ public:
    * @par Effects
    * `(endpoint_id()->communication_mode() == Communication_mode::wnp)`.
    */
-  static DMITIGR_UTIL_API std::unique_ptr<Listener_options> make(std::string pipe_name);
+  static DMITIGR_NET_API std::unique_ptr<Listener_options> make(std::string pipe_name);
 #else
   /**
    * @returns The new instance of the options for
@@ -309,7 +314,7 @@ public:
    * @par Effects
    * `(endpoint_id()->communication_mode() == Communication_mode::uds)`.
    */
-  static DMITIGR_UTIL_API std::unique_ptr<Listener_options> make(std::filesystem::path path, int backlog);
+  static DMITIGR_NET_API std::unique_ptr<Listener_options> make(std::filesystem::path path, int backlog);
 #endif
   /**
    * @overload
@@ -326,7 +331,7 @@ public:
    * @par Effects
    * `(endpoint_id()->communication_mode() == Communication_mode::net)`.
    */
-  static DMITIGR_UTIL_API std::unique_ptr<Listener_options> make(std::string address, int port, int backlog);
+  static DMITIGR_NET_API std::unique_ptr<Listener_options> make(std::string address, int port, int backlog);
 
   /**
    * @returns The copy of this instance.
@@ -370,7 +375,7 @@ public:
   /**
    * @returns A new instance of the network listener.
    */
-  static DMITIGR_UTIL_API std::unique_ptr<Listener> make(const Listener_options* options);
+  static DMITIGR_NET_API std::unique_ptr<Listener> make(const Listener_options* options);
 
   /**
    * @returns The options of the listener.
@@ -410,14 +415,14 @@ public:
   /**
    * @brief Accepts a new client connection.
    *
-   * @returns A new instance of type io::Descriptor.
+   * @returns A new instance of type Descriptor.
    *
    * @par Requires
    * `is_listening()`.
    *
    * @see wait().
    */
-  virtual std::unique_ptr<io::Descriptor> accept() = 0;
+  virtual std::unique_ptr<Descriptor> accept() = 0;
 
   /**
    * @brief Stops the listening.
@@ -436,7 +441,7 @@ private:
  * @returns `true` if the `hostname` denotes
  * a valid hostname, or `false` otherwise.
  */
-DMITIGR_UTIL_API bool is_hostname_valid(const std::string& hostname);
+DMITIGR_NET_API bool is_hostname_valid(const std::string& hostname);
 
 /**
  * @brief Performs the polling of the `socket`.
@@ -451,7 +456,7 @@ DMITIGR_UTIL_API bool is_hostname_valid(const std::string& hostname);
  *
  * @remarks The current implementation is based only on select().
  */
-DMITIGR_UTIL_API Socket_readiness poll(Socket_native socket,
+DMITIGR_NET_API Socket_readiness poll(Socket_native socket,
   Socket_readiness mask, std::chrono::milliseconds timeout);
 
 } // namespace dmitigr::net
@@ -462,8 +467,8 @@ template<> struct Is_bitmask_enum<net::Socket_readiness> : std::true_type {};
 
 } // namespace dmitigr
 
-#ifdef DMITIGR_UTIL_HEADER_ONLY
-#include "dmitigr/util/net.cpp"
+#ifdef DMITIGR_NET_HEADER_ONLY
+#include "dmitigr/net/net.cpp"
 #endif
 
-#endif  // DMITIGR_UTIL_NET_HPP
+#endif  // DMITIGR_NET_NET_HPP

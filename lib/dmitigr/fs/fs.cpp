@@ -1,17 +1,15 @@
 // -*- C++ -*-
 // Copyright (C) Dmitry Igrishin
-// For conditions of distribution and use, see files LICENSE.txt or util.hpp
+// For conditions of distribution and use, see files LICENSE.txt or fs.hpp
+
+#include "dmitigr/fs/fs.hpp"
+#include "dmitigr/fs/implementation_header.hpp"
 
 #include "dmitigr/util/debug.hpp"
-#include "dmitigr/util/fs.hpp"
-#include "dmitigr/util/stream.hpp"
-#include "dmitigr/util/implementation_header.hpp"
-
-#include <stdexcept>
 
 namespace dmitigr::fs {
 
-DMITIGR_UTIL_INLINE std::vector<std::filesystem::path> file_paths_by_extension(const std::filesystem::path& root,
+DMITIGR_FS_INLINE std::vector<std::filesystem::path> file_paths_by_extension(const std::filesystem::path& root,
   const std::filesystem::path& extension,
   const bool recursive, const bool include_heading)
 {
@@ -45,7 +43,7 @@ DMITIGR_UTIL_INLINE std::vector<std::filesystem::path> file_paths_by_extension(c
   return result;
 }
 
-DMITIGR_UTIL_INLINE std::optional<std::filesystem::path> parent_directory_path(const std::filesystem::path& dir)
+DMITIGR_FS_INLINE std::optional<std::filesystem::path> parent_directory_path(const std::filesystem::path& dir)
 {
   auto path = std::filesystem::current_path();
   while (true) {
@@ -58,18 +56,6 @@ DMITIGR_UTIL_INLINE std::optional<std::filesystem::path> parent_directory_path(c
   }
 }
 
-DMITIGR_UTIL_INLINE std::string file_data_to_string(const std::filesystem::path& path,
-  const bool is_binary)
-{
-  const std::ios_base::openmode om =
-    is_binary ? (std::ios_base::in | std::ios_base::binary) : std::ios_base::in;
-  std::ifstream stream{path, om};
-  if (stream)
-    return stream::read_to_string(stream);
-  else
-    throw std::runtime_error{"unable to open the file \"" + path.generic_string() + "\""};
-}
-
 } // namespace dmitigr::fs
 
-#include "dmitigr/util/implementation_footer.hpp"
+#include "dmitigr/fs/implementation_footer.hpp"

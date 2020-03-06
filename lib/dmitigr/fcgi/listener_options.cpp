@@ -5,8 +5,8 @@
 #include "dmitigr/fcgi/listener_options.hpp"
 #include "dmitigr/fcgi/implementation_header.hpp"
 
+#include <dmitigr/net.hpp>
 #include <dmitigr/util/debug.hpp>
-#include <dmitigr/util/net.hpp>
 
 namespace dmitigr::fcgi::detail {
 

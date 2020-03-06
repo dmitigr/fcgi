@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2019 Dmitry Igrishin
+// Copyright (C) 2020 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -20,18 +20,11 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-#ifndef DMITIGR_UTIL_HPP
-#define DMITIGR_UTIL_HPP
+#ifndef DMITIGR_NET_HPP
+#define DMITIGR_NET_HPP
 
-#include "dmitigr/util/basics.hpp"
-#include "dmitigr/util/debug.hpp"
-#include "dmitigr/util/exceptions.hpp"
-#include "dmitigr/util/filesystem.hpp"
-#include "dmitigr/util/macros.hpp"
-#include "dmitigr/util/test.hpp"
-#include "dmitigr/util/version.hpp"
-#ifdef _WIN32
-#include "dmitigr/util/windows.hpp"
-#endif
+#include "dmitigr/net/descriptor.hpp"
+#include "dmitigr/net/net.hpp"
+#include "dmitigr/net/version.hpp"
 
-#endif  // DMITIGR_UTIL_HPP
+#endif  // DMITIGR_NET_HPP

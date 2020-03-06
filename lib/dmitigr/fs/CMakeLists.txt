@@ -6,49 +6,44 @@
 # Info
 # ------------------------------------------------------------------------------
 
-dmitigr_set_library_info(fcgi 1 0 "FastCGI implementation")
+dmitigr_set_library_info(fs 0 1 "Filesystem extras")
 
 # ------------------------------------------------------------------------------
 # Sources
 # ------------------------------------------------------------------------------
 
-set(dmitigr_fcgi_root_headers
-  ../fcgi.hpp
+set(dmitigr_fs_root_headers
+  ../fs.hpp
   )
 
-set(dmitigr_fcgi_headers
-  basics.hpp
-  connection.hpp
-  listener.hpp
-  listener_options.hpp
-  server_connection.hpp
-  streambuf.hpp
-  streams.hpp
+set(dmitigr_fs_headers
+  fs.hpp
   types_fwd.hpp
   )
 
-set(dmitigr_fcgi_implementations
-  basics.cpp
-  listener.cpp
-  listener_options.cpp
-  server_connection.cpp
-  streambuf.cpp
-  streams.cpp
+set(dmitigr_fs_implementations
+  fs.cpp
   )
 
-set(dmitigr_fcgi_transunits
-  ../fcgi.cpp
+set(dmitigr_fs_transunits
+  ../fs.cpp
   )
 
 # ------------------------------------------------------------------------------
 # Dependencies
 # ------------------------------------------------------------------------------
 
-set(dmitigr_fcgi_target_link_libraries_public dmitigr::math dmitigr::net dmitigr::util)
-set(dmitigr_fcgi_target_link_libraries_interface dmitigr::math dmitigr::net dmitigr::util)
+set(dmitigr_fs_target_link_libraries_public dmitigr::util)
+set(dmitigr_fs_target_link_libraries_interface dmitigr::util)
+
+if(NOT DMITIGR_CEFEIKA_HEADER_ONLY)
+  dmitigr_append_cppfs(dmitigr_fs_target_link_libraries_public)
+else()
+  dmitigr_append_cppfs(dmitigr_fs_target_link_libraries_interface)
+endif()
 
 # ------------------------------------------------------------------------------
 # Variables propagation
 # ------------------------------------------------------------------------------
 
-dmitigr_propagate_library_settings(fcgi)
+dmitigr_propagate_library_settings(fs)

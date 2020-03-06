@@ -6,40 +6,39 @@
 # Info
 # ------------------------------------------------------------------------------
 
-dmitigr_set_library_info(util 0 1 "Basic utilities")
+dmitigr_set_library_info(net 0 1 "Networking library")
 
 # ------------------------------------------------------------------------------
 # Sources
 # ------------------------------------------------------------------------------
 
-set(dmitigr_util_root_headers
-  ../util.hpp
+set(dmitigr_net_root_headers
+  ../net.hpp
   )
 
-set(dmitigr_util_headers
-  basics.hpp
-  debug.hpp
-  exceptions.hpp
-  filesystem.hpp
-  macros.hpp
-  test.hpp
+set(dmitigr_net_headers
+  descriptor.hpp
+  net.hpp
   types_fwd.hpp
   )
 
-if (WIN32)
-  list(APPEND dmitigr_util_headers windows.hpp)
-endif()
-
-set(dmitigr_util_implementations
-  exceptions.cpp
+set(dmitigr_net_implementations
+  net.cpp
   )
 
-set(dmitigr_util_transunits
-  ../util.cpp
+set(dmitigr_net_transunits
+  ../net.cpp
   )
+
+# ------------------------------------------------------------------------------
+# Dependencies
+# ------------------------------------------------------------------------------
+
+set(dmitigr_net_target_link_libraries_public dmitigr::fs dmitigr::util)
+set(dmitigr_net_target_link_libraries_interface dmitigr::fs dmitigr::util)
 
 # ------------------------------------------------------------------------------
 # Variables propagation
 # ------------------------------------------------------------------------------
 
-dmitigr_propagate_library_settings(util)
+dmitigr_propagate_library_settings(net)

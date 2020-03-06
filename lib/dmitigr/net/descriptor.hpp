@@ -1,15 +1,15 @@
 // -*- C++ -*-
 // Copyright (C) Dmitry Igrishin
-// For conditions of distribution and use, see files LICENSE.txt or util.hpp
+// For conditions of distribution and use, see files LICENSE.txt or net.hpp
 
-#ifndef DMITIGR_UTIL_IO_HPP
-#define DMITIGR_UTIL_IO_HPP
+#ifndef DMITIGR_NET_DESCRIPTOR_HPP
+#define DMITIGR_NET_DESCRIPTOR_HPP
 
-#include "dmitigr/util/types_fwd.hpp"
+#include "dmitigr/net/types_fwd.hpp"
 
 #include <ios>
 
-namespace dmitigr::io {
+namespace dmitigr::net {
 
 /**
  * @brief A descriptor to perform low-level I/O operations.
@@ -55,13 +55,8 @@ public:
    * @throws `std::runtime_error` on failure.
    */
   virtual void close() = 0;
-
-private:
-  friend net::detail::iDescriptor;
-
-  Descriptor() = default;
 };
 
-} // namespace dmitigr::io
+} // namespace dmitigr::net
 
-#endif  // DMITIGR_UTIL_IO_HPP
+#endif  // DMITIGR_NET_DESCRIPTOR_HPP

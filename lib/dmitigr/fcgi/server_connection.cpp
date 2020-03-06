@@ -18,7 +18,7 @@ public:
   /**
    * @brief The constructor.
    */
-  explicit iServer_connection(std::unique_ptr<io::Descriptor> io, const Role role,
+  explicit iServer_connection(std::unique_ptr<net::Descriptor> io, const Role role,
     const int request_id, const bool is_keep_connection)
     : is_keep_connection_{is_keep_connection}
     , role_{role}
@@ -111,7 +111,7 @@ private:
   Role role_{};
   int request_id_{};
   int application_status_{};
-  std::unique_ptr<io::Descriptor> io_;
+  std::unique_ptr<net::Descriptor> io_;
   detail::Names_values parameters_;
 };
 

@@ -6,40 +6,37 @@
 # Info
 # ------------------------------------------------------------------------------
 
-dmitigr_set_library_info(util 0 1 "Basic utilities")
+dmitigr_set_library_info(math 0 1 "Mathematical stuff")
 
 # ------------------------------------------------------------------------------
 # Sources
 # ------------------------------------------------------------------------------
 
-set(dmitigr_util_root_headers
-  ../util.hpp
+set(dmitigr_math_root_headers
+  ../math.hpp
   )
 
-set(dmitigr_util_headers
-  basics.hpp
-  debug.hpp
-  exceptions.hpp
-  filesystem.hpp
-  macros.hpp
-  test.hpp
+set(dmitigr_math_headers
+  math.hpp
   types_fwd.hpp
   )
 
-if (WIN32)
-  list(APPEND dmitigr_util_headers windows.hpp)
-endif()
-
-set(dmitigr_util_implementations
-  exceptions.cpp
+set(dmitigr_math_implementations
   )
 
-set(dmitigr_util_transunits
-  ../util.cpp
+set(dmitigr_math_transunits
+  ../math.cpp
   )
+
+# ------------------------------------------------------------------------------
+# Dependencies
+# ------------------------------------------------------------------------------
+
+set(dmitigr_math_target_link_libraries_public dmitigr::util)
+set(dmitigr_math_target_link_libraries_interface dmitigr::util)
 
 # ------------------------------------------------------------------------------
 # Variables propagation
 # ------------------------------------------------------------------------------
 
-dmitigr_propagate_library_settings(util)
+dmitigr_propagate_library_settings(math)

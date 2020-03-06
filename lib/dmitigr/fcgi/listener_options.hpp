@@ -8,8 +8,8 @@
 #include "dmitigr/fcgi/dll.hpp"
 #include "dmitigr/fcgi/types_fwd.hpp"
 
+#include <dmitigr/net/types_fwd.hpp>
 #include <dmitigr/util/filesystem.hpp>
-#include <dmitigr/util/types_fwd.hpp>
 
 #include <memory>
 #include <optional>

@@ -6,9 +6,9 @@
 #include "dmitigr/fcgi/connection.hpp"
 #include "dmitigr/fcgi/implementation_header.hpp"
 
+#include <dmitigr/math.hpp>
+#include <dmitigr/net/descriptor.hpp>
 #include <dmitigr/util/debug.hpp>
-#include <dmitigr/util/io.hpp>
-#include <dmitigr/util/math.hpp>
 
 #include <algorithm>
 #include <array>
@@ -121,7 +121,7 @@ struct Header final {
   /**
    * @brief Constructs by reading the header from `io`.
    */
-  explicit Header(io::Descriptor* const io)
+  explicit Header(net::Descriptor* const io)
   {
     DMITIGR_ASSERT(io);
 
@@ -245,7 +245,7 @@ struct Begin_request_body final {
   /**
    * @brief Constructs by reading the record from `io`.
    */
-  explicit Begin_request_body(io::Descriptor* const io)
+  explicit Begin_request_body(net::Descriptor* const io)
   {
     DMITIGR_ASSERT(io);
 

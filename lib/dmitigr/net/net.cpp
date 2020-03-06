@@ -1,15 +1,16 @@
 // -*- C++ -*-
 // Copyright (C) Dmitry Igrishin
-// For conditions of distribution and use, see files LICENSE.txt or util.hpp
+// For conditions of distribution and use, see files LICENSE.txt or net.hpp
+
+#include "dmitigr/net/descriptor.hpp"
+#include "dmitigr/net/net.hpp"
+#include "dmitigr/net/implementation_header.hpp"
 
 #include "dmitigr/util/debug.hpp"
 #include "dmitigr/util/exceptions.hpp"
-#include "dmitigr/util/io.hpp"
-#include "dmitigr/util/net.hpp"
 #ifdef _WIN32
 #include "dmitigr/util/windows.hpp"
 #endif
-#include "dmitigr/util/implementation_header.hpp"
 
 #include <algorithm>
 #include <array>
@@ -58,27 +59,27 @@ static_assert(sd_both == SHUT_RDWR);
 // Socket_guard
 // -----------------------------------------------------------------------------
 
-DMITIGR_UTIL_INLINE Socket_guard::~Socket_guard()
+DMITIGR_NET_INLINE Socket_guard::~Socket_guard()
 {
   if (close() != 0)
-    Net_exception::report("closesocket");
+    DMITIGR_NET_EXCEPTION::report("closesocket");
 }
 
-DMITIGR_UTIL_INLINE Socket_guard::Socket_guard() noexcept
+DMITIGR_NET_INLINE Socket_guard::Socket_guard() noexcept
   : socket_{invalid_socket()}
 {}
 
-DMITIGR_UTIL_INLINE Socket_guard::Socket_guard(Socket_native socket) noexcept
+DMITIGR_NET_INLINE Socket_guard::Socket_guard(Socket_native socket) noexcept
   : socket_{socket}
 {}
 
-DMITIGR_UTIL_INLINE Socket_guard::Socket_guard(Socket_guard&& rhs) noexcept
+DMITIGR_NET_INLINE Socket_guard::Socket_guard(Socket_guard&& rhs) noexcept
   : socket_{rhs.socket_}
 {
   rhs.socket_ = invalid_socket();
 }
 
-DMITIGR_UTIL_INLINE Socket_guard& Socket_guard::operator=(Socket_guard&& rhs) noexcept
+DMITIGR_NET_INLINE Socket_guard& Socket_guard::operator=(Socket_guard&& rhs) noexcept
 {
   if (this != &rhs) {
     Socket_guard tmp{std::move(rhs)};
@@ -87,22 +88,22 @@ DMITIGR_UTIL_INLINE Socket_guard& Socket_guard::operator=(Socket_guard&& rhs) no
   return *this;
 }
 
-DMITIGR_UTIL_INLINE void Socket_guard::swap(Socket_guard& other) noexcept
+DMITIGR_NET_INLINE void Socket_guard::swap(Socket_guard& other) noexcept
 {
   std::swap(socket_, other.socket_);
 }
 
-DMITIGR_UTIL_INLINE Socket_native Socket_guard::socket() const noexcept
+DMITIGR_NET_INLINE Socket_native Socket_guard::socket() const noexcept
 {
   return socket_;
 }
 
-DMITIGR_UTIL_INLINE Socket_guard::operator Socket_native() const noexcept
+DMITIGR_NET_INLINE Socket_guard::operator Socket_native() const noexcept
 {
   return socket();
 }
 
-DMITIGR_UTIL_INLINE int Socket_guard::close() noexcept
+DMITIGR_NET_INLINE int Socket_guard::close() noexcept
 {
   int result{};
   if (socket_ != invalid_socket()) {
@@ -121,7 +122,7 @@ DMITIGR_UTIL_INLINE int Socket_guard::close() noexcept
 // Helper functions
 // -----------------------------------------------------------------------------
 
-DMITIGR_UTIL_INLINE Socket_native invalid_socket()
+DMITIGR_NET_INLINE Socket_native invalid_socket()
 {
 #ifdef _WIN32
   return INVALID_SOCKET;
@@ -130,7 +131,7 @@ DMITIGR_UTIL_INLINE Socket_native invalid_socket()
 #endif
 }
 
-DMITIGR_UTIL_INLINE bool is_socket_valid(const Socket_native socket)
+DMITIGR_NET_INLINE bool is_socket_valid(const Socket_native socket)
 {
 #ifdef _WIN32
   const auto sock = static_cast<SOCKET>(socket);
@@ -141,7 +142,7 @@ DMITIGR_UTIL_INLINE bool is_socket_valid(const Socket_native socket)
 #endif
 }
 
-DMITIGR_UTIL_INLINE bool is_socket_error(const int function_result)
+DMITIGR_NET_INLINE bool is_socket_error(const int function_result)
 {
 #ifdef _WIN32
   return (function_result == SOCKET_ERROR);
@@ -242,6 +243,18 @@ public:
     throw std::runtime_error{"invalid IP address"};
   }
 
+  static iIp_address from_binary(const std::string_view bin)
+  {
+    iIp_address result;
+    const auto binsz = bin.size();
+    DMITIGR_REQUIRE(binsz == 4 || binsz == 16, std::invalid_argument);
+    if (binsz == 4)
+      result.init< ::in_addr>(bin);
+    else
+      result.init< ::in6_addr>(bin);
+    return result;
+  }
+
   Ip_version family() const override
   {
     return std::visit([](const auto& addr) {
@@ -281,20 +294,36 @@ public:
 private:
   std::variant<::in_addr, ::in6_addr> binary_;
 
+  iIp_address() = default;
+
   void* binary()
   {
     return const_cast<void*>(static_cast<const iIp_address*>(this)->binary());
+  }
+
+  template<typename Addr>
+  void init(const std::string_view bin)
+  {
+    DMITIGR_ASSERT(sizeof(Addr) == bin.size());
+    Addr tmp;
+    std::memcpy(&tmp, bin.data(), bin.size());
+    binary_ = tmp;
   }
 };
 
 } // namespace detail
 
-DMITIGR_UTIL_INLINE std::unique_ptr<Ip_address> Ip_address::make(const std::string& str)
+DMITIGR_NET_INLINE std::unique_ptr<Ip_address> Ip_address::make(const std::string& str)
 {
   return std::make_unique<detail::iIp_address>(str);
 }
 
-DMITIGR_UTIL_INLINE bool Ip_address::is_valid(const std::string& str)
+DMITIGR_NET_INLINE std::unique_ptr<Ip_address> Ip_address::make_from_binary(std::string_view bin)
+{
+  return std::make_unique<detail::iIp_address>(detail::iIp_address::from_binary(bin));
+}
+
+DMITIGR_NET_INLINE bool Ip_address::is_valid(const std::string& str)
 {
   unsigned char buf[sizeof (::in6_addr)];
   if (detail::inet_pton__(AF_INET, str.c_str(), buf) > 0)
@@ -516,35 +545,35 @@ private:
 } // namespace detail
 
 #ifdef _WIN32
-DMITIGR_UTIL_INLINE std::unique_ptr<Listener_options>
+DMITIGR_NET_INLINE std::unique_ptr<Listener_options>
 Listener_options::make(std::string pipe_name)
 {
   return std::make_unique<detail::iListener_options>(std::move(pipe_name));
 }
 #else
-DMITIGR_UTIL_INLINE std::unique_ptr<Listener_options>
+DMITIGR_NET_INLINE std::unique_ptr<Listener_options>
 Listener_options::make(std::filesystem::path path, const int backlog)
 {
   return std::make_unique<detail::iListener_options>(std::move(path), backlog);
 }
 #endif
 
-DMITIGR_UTIL_INLINE std::unique_ptr<Listener_options>
+DMITIGR_NET_INLINE std::unique_ptr<Listener_options>
 Listener_options::make(std::string address, const int port, const int backlog)
 {
   return std::make_unique<detail::iListener_options>(std::move(address), port, backlog);
 }
 
 // -----------------------------------------------------------------------------
-// io::Descriptor
+// Descriptor
 // -----------------------------------------------------------------------------
 
 namespace detail {
 
 /**
- * @brief The base implementation of io::Descriptor.
+ * @brief The base implementation of Descriptor.
  */
-class iDescriptor : public io::Descriptor {
+class iDescriptor : public Descriptor {
 public:
   std::streamsize max_read_size() const override
   {
@@ -558,7 +587,7 @@ public:
 };
 
 /**
- * @brief The implementation of io::Descriptor based on sockets.
+ * @brief The implementation of Descriptor based on sockets.
  */
 class socket_Descriptor final : public iDescriptor {
 public:
@@ -595,7 +624,7 @@ public:
     constexpr int flags{};
     const int result = ::recv(socket_, buf, static_cast<int>(len), flags);
     if (net::is_socket_error(result))
-      throw Net_exception{"recv"};
+      throw DMITIGR_NET_EXCEPTION{"recv"};
 
     return static_cast<std::streamsize>(result);
   }
@@ -608,7 +637,7 @@ public:
     constexpr int flags{};
     const int result = ::send(socket_, buf, static_cast<int>(len), flags);
     if (net::is_socket_error(result))
-      throw Net_exception{"send"};
+      throw DMITIGR_NET_EXCEPTION{"send"};
 
     return static_cast<std::streamsize>(result);
   }
@@ -637,7 +666,7 @@ private:
   void shutdown__()
   {
     if (::shutdown(socket_, net::sd_send) != 0)
-      throw Net_exception{"shutdown"};
+      throw DMITIGR_NET_EXCEPTION{"shutdown"};
 
     while (true) {
       using Sr = net::Socket_readiness;
@@ -648,7 +677,7 @@ private:
       std::array<char, 1024> trashcan;
       constexpr int flags{};
       if (const int r = ::recv(socket_, trashcan.data(), static_cast<int>(trashcan.size()), flags); net::is_socket_error(r))
-        throw Net_exception{"recv"};
+        throw DMITIGR_NET_EXCEPTION{"recv"};
       else if (r == 0)
         break; // the end (ok)
     }
@@ -658,7 +687,7 @@ private:
 #ifdef _WIN32
 
 /**
- * @brief The implementation of io::Descriptor based on Windows Named Pipes.
+ * @brief The implementation of Descriptor based on Windows Named Pipes.
  */
 class pipe_Descriptor final : public iDescriptor {
 public:
@@ -795,7 +824,7 @@ public:
     {
       socket_ = net::Socket_guard{::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)};
       if (!net::is_socket_valid(socket_))
-        throw Net_exception{"socket"};
+        throw DMITIGR_NET_EXCEPTION{"socket"};
 
       const int optval = 1;
 #ifdef _WIN32
@@ -804,7 +833,7 @@ public:
       const auto optlen = static_cast<::socklen_t>(sizeof (optval));
 #endif
       if (::setsockopt(socket_, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&optval), optlen) != 0)
-        throw Net_exception{"setsockopt"};
+        throw DMITIGR_NET_EXCEPTION{"setsockopt"};
 
       const auto ip = net::Ip_address::make(*eid->net_address());
       if (ip->family() == Ip_version::v4) {
@@ -815,7 +844,7 @@ public:
         addr.sin_addr = *static_cast<const ::in_addr*>(ip->binary());
         addr.sin_port = htons(static_cast<unsigned short>(*eid->net_port()));
         if (::bind(socket_, reinterpret_cast<::sockaddr*>(&addr), static_cast<int>(addr_size)) != 0)
-          throw Net_exception{"bind"};
+          throw DMITIGR_NET_EXCEPTION{"bind"};
       } else if (ip->family() == Ip_version::v6) {
         ::sockaddr_in6 addr{};
         constexpr auto addr_size = sizeof (addr);
@@ -826,7 +855,7 @@ public:
         addr.sin6_flowinfo = htonl(0);
         addr.sin6_scope_id = htonl(0);
         if (::bind(socket_, reinterpret_cast<::sockaddr*>(&addr), static_cast<int>(addr_size)) != 0)
-          throw Net_exception{"bind"};
+          throw DMITIGR_NET_EXCEPTION{"bind"};
       }
     };
 
@@ -837,7 +866,7 @@ public:
     {
       socket_ = net::Socket_guard{::socket(AF_UNIX, SOCK_STREAM, IPPROTO_TCP)};
       if (!net::is_socket_valid(socket_))
-        throw Net_exception{"socket"};
+        throw DMITIGR_NET_EXCEPTION{"socket"};
 
       ::sockaddr_un addr{};
       constexpr auto addr_size = sizeof (addr);
@@ -849,7 +878,7 @@ public:
         std::strncpy(addr.sun_path, path.native().c_str(), sizeof (::sockaddr_un::sun_path));
 
       if (::bind(socket_, reinterpret_cast<::sockaddr*>(&addr), static_cast<int>(addr_size)) != 0)
-        throw Net_exception{"bind"};
+        throw DMITIGR_NET_EXCEPTION{"bind"};
     };
 
     if (cm == Communication_mode::net)
@@ -859,7 +888,7 @@ public:
 #endif
 
     if (::listen(socket_, *options_->backlog()) != 0)
-      throw Net_exception{"listen"};
+      throw DMITIGR_NET_EXCEPTION{"listen"};
   }
 
   bool wait(const std::chrono::milliseconds timeout = std::chrono::milliseconds{-1}) override
@@ -874,7 +903,7 @@ public:
     return bool(mask & Sr::read_ready);
   }
 
-  std::unique_ptr<io::Descriptor> accept() override
+  std::unique_ptr<Descriptor> accept() override
   {
     DMITIGR_REQUIRE(is_listening(), std::logic_error);
 
@@ -885,7 +914,7 @@ public:
     constexpr ::socklen_t* addrlen{};
 #endif
     if (net::Socket_guard sock{::accept(socket_, addr, addrlen)}; !net::is_socket_valid(sock))
-      throw Net_exception{"accept"};
+      throw DMITIGR_NET_EXCEPTION{"accept"};
     else
       return std::make_unique<socket_Descriptor>(std::move(sock));
   }
@@ -893,7 +922,7 @@ public:
   void close() override
   {
     if (socket_.close() != 0)
-      throw Net_exception{"closesocket"};
+      throw DMITIGR_NET_EXCEPTION{"closesocket"};
   }
 
 private:
@@ -913,7 +942,7 @@ private:
   void net_deinitialize()
   {
     if (::WSACleanup() != 0)
-      Net_exception::report("WSACleanup");
+      DMITIGR_NET_EXCEPTION::report("WSACleanup");
   }
 #else
   void net_initialize()
@@ -1026,7 +1055,7 @@ public:
     return true;
   }
 
-  std::unique_ptr<io::Descriptor> accept() override
+  std::unique_ptr<Descriptor> accept() override
   {
     wait();
     DMITIGR_ASSERT(pipe_ != INVALID_HANDLE_VALUE);
@@ -1084,7 +1113,7 @@ private:
 
 } // namespace detail
 
-DMITIGR_UTIL_INLINE std::unique_ptr<Listener> Listener::make(const Listener_options* const options)
+DMITIGR_NET_INLINE std::unique_ptr<Listener> Listener::make(const Listener_options* const options)
 {
   using detail::pipe_Listener;
   using detail::socket_Listener;
@@ -1103,7 +1132,7 @@ DMITIGR_UTIL_INLINE std::unique_ptr<Listener> Listener::make(const Listener_opti
 
 // =============================================================================
 
-DMITIGR_UTIL_INLINE bool is_hostname_valid(const std::string& hostname)
+DMITIGR_NET_INLINE bool is_hostname_valid(const std::string& hostname)
 {
   constexpr std::string::size_type max_length{253};
   if (hostname.empty() || hostname.size() > max_length)
@@ -1127,7 +1156,7 @@ DMITIGR_UTIL_INLINE bool is_hostname_valid(const std::string& hostname)
   return true;
 }
 
-DMITIGR_UTIL_INLINE Socket_readiness poll(const Socket_native socket,
+DMITIGR_NET_INLINE Socket_readiness poll(const Socket_native socket,
   const Socket_readiness mask, const std::chrono::milliseconds timeout)
 {
   DMITIGR_ASSERT_ALWAYS(is_socket_valid(socket));
@@ -1212,4 +1241,4 @@ DMITIGR_UTIL_INLINE Socket_readiness poll(const Socket_native socket,
 
 } // namespace dmitigr::net
 
-#include "dmitigr/util/implementation_footer.hpp"
+#include "dmitigr/net/implementation_footer.hpp"

@@ -1,26 +1,13 @@
 // -*- C++ -*-
 // Copyright (C) Dmitry Igrishin
-// For conditions of distribution and use, see files LICENSE.txt or util.hpp
+// For conditions of distribution and use, see files LICENSE.txt or math.hpp
 
-#ifndef DMITIGR_UTIL_MATH_HPP
-#define DMITIGR_UTIL_MATH_HPP
+#ifndef DMITIGR_MATH_MATH_HPP
+#define DMITIGR_MATH_MATH_HPP
 
 #include "dmitigr/util/debug.hpp"
 
-#include <cstdlib>
-
 namespace dmitigr::math {
-
-/**
- * @returns The random number.
- *
- * @remarks From TC++PL 3rd, 22.7.
- */
-template<typename T>
-constexpr T rand_cpp_pl_3rd(const T num)
-{
-  return static_cast<T>(static_cast<double>(std::rand()) / RAND_MAX) * num;
-}
 
 /**
  * @returns `true` if `number` is a power of 2, or `false` otherwise.
@@ -62,4 +49,4 @@ constexpr T aligned(const T size, const U alignment)
 
 } // namespace dmitigr::math
 
-#endif  // DMITIGR_UTIL_MATH_HPP
+#endif  // DMITIGR_MATH_MATH_HPP
