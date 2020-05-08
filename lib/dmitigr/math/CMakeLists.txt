@@ -12,28 +12,19 @@ dmitigr_set_library_info(math 0 1 "Mathematical stuff")
 # Sources
 # ------------------------------------------------------------------------------
 
-set(dmitigr_math_root_headers
-  ../math.hpp
-  )
-
 set(dmitigr_math_headers
   math.hpp
-  types_fwd.hpp
   )
 
 set(dmitigr_math_implementations
-  )
-
-set(dmitigr_math_transunits
-  ../math.cpp
   )
 
 # ------------------------------------------------------------------------------
 # Dependencies
 # ------------------------------------------------------------------------------
 
-set(dmitigr_math_target_link_libraries_public dmitigr::util)
-set(dmitigr_math_target_link_libraries_interface dmitigr::util)
+set(dmitigr_math_target_link_libraries_public dmitigr::base)
+set(dmitigr_math_target_link_libraries_interface dmitigr::base)
 
 # ------------------------------------------------------------------------------
 # Variables propagation

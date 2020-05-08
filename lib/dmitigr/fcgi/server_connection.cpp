@@ -4,9 +4,7 @@
 
 #include "dmitigr/fcgi/basics.hpp"
 #include "dmitigr/fcgi/server_connection.hpp"
-#include "dmitigr/fcgi/implementation_header.hpp"
-
-#include <dmitigr/util/debug.hpp>
+#include <dmitigr/base/debug.hpp>
 
 namespace dmitigr::fcgi::detail {
 
@@ -116,5 +114,3 @@ private:
 };
 
 } // namespace dmitigr::fcgi::detail
-
-#include "dmitigr/fcgi/implementation_footer.hpp"

@@ -5,9 +5,7 @@
 #include "dmitigr/fcgi/basics.hpp"
 #include "dmitigr/fcgi/streambuf.hpp"
 #include "dmitigr/fcgi/streams.hpp"
-#include "dmitigr/fcgi/implementation_header.hpp"
-
-#include <dmitigr/util/debug.hpp>
+#include <dmitigr/base/debug.hpp>
 
 namespace dmitigr::fcgi::detail {
 
@@ -128,5 +126,3 @@ DMITIGR_FCGI_INLINE std::ostream& crlfcrlf(std::ostream& ostr)
 }
 
 } // namespace dmitigr::fcgi
-
-#include "dmitigr/fcgi/implementation_footer.hpp"

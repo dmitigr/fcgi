@@ -3,10 +3,8 @@
 // For conditions of distribution and use, see files LICENSE.txt or fcgi.hpp
 
 #include "dmitigr/fcgi/listener_options.hpp"
-#include "dmitigr/fcgi/implementation_header.hpp"
-
-#include <dmitigr/net.hpp>
-#include <dmitigr/util/debug.hpp>
+#include <dmitigr/net/net.hpp>
+#include <dmitigr/base/debug.hpp>
 
 namespace dmitigr::fcgi::detail {
 
@@ -107,5 +105,3 @@ Listener_options::make(std::string address, const int port, const int backlog)
 }
 
 } // namespace dmitigr::fcgi
-
-#include "dmitigr/fcgi/implementation_footer.hpp"

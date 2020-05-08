@@ -12,10 +12,6 @@ dmitigr_set_library_info(fcgi 1 0 "FastCGI implementation")
 # Sources
 # ------------------------------------------------------------------------------
 
-set(dmitigr_fcgi_root_headers
-  ../fcgi.hpp
-  )
-
 set(dmitigr_fcgi_headers
   basics.hpp
   connection.hpp
@@ -35,17 +31,6 @@ set(dmitigr_fcgi_implementations
   streambuf.cpp
   streams.cpp
   )
-
-set(dmitigr_fcgi_transunits
-  ../fcgi.cpp
-  )
-
-# ------------------------------------------------------------------------------
-# Dependencies
-# ------------------------------------------------------------------------------
-
-set(dmitigr_fcgi_target_link_libraries_public dmitigr::math dmitigr::net dmitigr::util)
-set(dmitigr_fcgi_target_link_libraries_interface dmitigr::math dmitigr::net dmitigr::util)
 
 # ------------------------------------------------------------------------------
 # Variables propagation

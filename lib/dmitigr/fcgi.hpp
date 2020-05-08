@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// Copyright (C) 2019 Dmitry Igrishin
+// Copyright (C) 2020 Dmitry Igrishin
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -20,16 +20,13 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// This file is generated automatically. Edit lib.hpp.in instead!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #ifndef DMITIGR_FCGI_HPP
 #define DMITIGR_FCGI_HPP
 
-#include "dmitigr/fcgi/basics.hpp"
-#include "dmitigr/fcgi/connection.hpp"
-#include "dmitigr/fcgi/listener.hpp"
-#include "dmitigr/fcgi/listener_options.hpp"
-#include "dmitigr/fcgi/server_connection.hpp"
-#include "dmitigr/fcgi/streambuf.hpp"
-#include "dmitigr/fcgi/streams.hpp"
-#include "dmitigr/fcgi/version.hpp"
+#include "dmitigr/fcgi/fcgi.hpp"
 
 #endif  // DMITIGR_FCGI_HPP

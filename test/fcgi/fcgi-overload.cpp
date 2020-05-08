@@ -3,9 +3,10 @@
 // For conditions of distribution and use, see files LICENSE.txt or fcgi.hpp
 
 #include <dmitigr/fcgi.hpp>
-#include <dmitigr/util/test.hpp>
+#include <dmitigr/testo.hpp>
 
 #include <atomic>
+#include <cassert>
 #include <iostream>
 #include <thread>
 #include <vector>

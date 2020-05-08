@@ -5,10 +5,8 @@
 #include "dmitigr/fcgi/basics.hpp"
 #include "dmitigr/fcgi/server_connection.hpp"
 #include "dmitigr/fcgi/streambuf.hpp"
-#include "dmitigr/fcgi/implementation_header.hpp"
-
-#include <dmitigr/math.hpp>
-#include <dmitigr/util/debug.hpp>
+#include <dmitigr/base/debug.hpp>
+#include <dmitigr/math/math.hpp>
 
 #include <algorithm>
 #include <array>
@@ -298,8 +296,8 @@ protected:
         auto* const header = reinterpret_cast<detail::Header*>(buffer_);
         *header = detail::Header{static_cast<detail::Record_type>(type_),
                                  connection_->request_id(),
-                                 static_cast<const std::size_t>(content_length),
-                                 static_cast<const std::size_t>(padding_length)};
+                                 static_cast<std::size_t>(content_length),
+                                 static_cast<std::size_t>(padding_length)};
       } else {
         setp(buffer_, buffer_ + buffer_size_ - 1); // The put area is empty. (Nothing to consume.)
         DMITIGR_ASSERT(ch == traits_type::eof());
@@ -350,7 +348,7 @@ protected:
       DMITIGR_ASSERT(pptr() == epptr() || traits_type::eq_int_type(ch, traits_type::eof()));
       if (!traits_type::eq_int_type(ch, traits_type::eof())) {
         DMITIGR_ASSERT(epptr() == buffer_ + buffer_size_ - 1);
-        buffer_[buffer_size_ - 1] = static_cast<const char>(ch);
+        buffer_[buffer_size_ - 1] = static_cast<char>(ch);
         record_length++;
       }
       const std::streamsize count = connection_->io_->write(static_cast<const char*>(buffer_), record_length);
@@ -551,13 +549,13 @@ private:
     Process_header_result result{};
     if (header.record_type() == detail::Record_type::begin_request) {
       end_request(detail::Protocol_status::cant_mpx_conn);
-      return Process_header_result::content_must_be_discarded;
+      result = Process_header_result::content_must_be_discarded;
     } else if (header.is_management_record())
-      return process_management_record();
+      result = process_management_record();
     else if (header.request_id() != connection_->request_id())
-      return Process_header_result::content_must_be_discarded;
+      result = Process_header_result::content_must_be_discarded;
     else if (header.record_type() == static_cast<detail::Record_type>(type_))
-      return Process_header_result::content_must_be_consumed;
+      result = Process_header_result::content_must_be_consumed;
     else
       end_request_protocol_violation();
 
@@ -587,5 +585,3 @@ private:
 };
 
 } // namespace dmitigr::fcgi::detail
-
-#include "dmitigr/fcgi/implementation_footer.hpp"
