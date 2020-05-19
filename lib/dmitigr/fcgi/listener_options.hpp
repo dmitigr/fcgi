@@ -38,7 +38,7 @@ public:
    * @param pipe_name - the pipe name.
    *
    * @par Effects
-   * `(endpoint_id()->communication_mode() == Communication_mode::wnp)`.
+   * `(endpoint()->communication_mode() == Communication_mode::wnp)`.
    */
   static DMITIGR_FCGI_API std::unique_ptr<Listener_options> make(std::string pipe_name);
 #else
@@ -50,7 +50,7 @@ public:
    * @param backlog - the maximum size of the queue of pending connections.
    *
    * @par Effects
-   * `(endpoint_id()->communication_mode() == Communication_mode::uds)`.
+   * `(endpoint()->communication_mode() == Communication_mode::uds)`.
    */
   static DMITIGR_FCGI_API std::unique_ptr<Listener_options> make(std::filesystem::path path, int backlog);
 #endif
@@ -67,7 +67,7 @@ public:
    * `(port > 0)`.
    *
    * @par Effects
-   * `(endpoint_id()->communication_mode() == Communication_mode::net)`.
+   * `(endpoint()->communication_mode() == Communication_mode::net)`.
    */
   static DMITIGR_FCGI_API std::unique_ptr<Listener_options> make(std::string address, int port, int backlog);
 
@@ -88,7 +88,7 @@ public:
   /**
    * @returns The endpoint identifier.
    */
-  virtual const net::Endpoint_id* endpoint_id() const = 0;
+  virtual const net::Endpoint& endpoint() const = 0;
 
   /**
    * @returns The value of backlog if the communication mode of the endpoint is

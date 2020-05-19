@@ -16,7 +16,7 @@ public:
   /**
    * @brief See Listener_options::make().
    */
-  explicit iListener_options(std::unique_ptr<net::Listener_options> options)
+  explicit iListener_options(net::Listener_options options)
     : options_{std::move(options)}
   {
     DMITIGR_ASSERT(is_invariant_ok());
@@ -27,14 +27,14 @@ public:
    * @brief See Listener_options::make().
    */
   explicit iListener_options(std::string pipe_name)
-    : iListener_options{net::Listener_options::make(std::move(pipe_name))}
+    : iListener_options{net::Listener_options{std::move(pipe_name)}}
   {}
 #else
   /**
    * @brief See Listener_options::make().
    */
   iListener_options(std::filesystem::path path, const int backlog)
-    : iListener_options{net::Listener_options::make(std::move(path), backlog)}
+    : iListener_options{net::Listener_options{std::move(path), backlog}}
   {}
 #endif
 
@@ -42,7 +42,7 @@ public:
    * @brief See Listener_options::make().
    */
   iListener_options(std::string address, const int port, const int backlog)
-    : iListener_options{net::Listener_options::make(std::move(address), port, backlog)}
+    : iListener_options{net::Listener_options{std::move(address), port, backlog}}
   {}
 
   // Listener overridinds:
@@ -51,27 +51,27 @@ public:
 
   std::unique_ptr<Listener_options> to_listener_options() const override
   {
-    return std::make_unique<iListener_options>(options_->to_listener_options());
+    return std::make_unique<iListener_options>(options_);
   }
 
-  const net::Endpoint_id* endpoint_id() const override
+  const net::Endpoint& endpoint() const override
   {
-    return options_->endpoint_id();
+    return options_.endpoint();
   }
 
   std::optional<int> backlog() const override
   {
-    return options_->backlog();
+    return options_.backlog();
   }
 
 private:
   friend iListener;
 
-  std::unique_ptr<net::Listener_options> options_;
+  net::Listener_options options_;
 
-  bool is_invariant_ok() const
+  constexpr bool is_invariant_ok() const
   {
-    return bool(options_);
+    return true;
   }
 
   iListener_options() = default;
