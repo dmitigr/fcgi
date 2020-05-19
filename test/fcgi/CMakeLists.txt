@@ -2,7 +2,7 @@
 # Copyright (C) Dmitry Igrishin
 # For conditions of distribution and use, see file LICENSE.txt
 
-set(dmitigr_fcgi_tests hello hellomt overload)
+set(dmitigr_fcgi_tests hello hellomt largesend overload)
 if(UNIX)
   set(dmitigr_fcgi_tests_target_link_libraries pthread)
 endif()

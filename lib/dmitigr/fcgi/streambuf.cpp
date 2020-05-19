@@ -14,6 +14,15 @@
 #include <limits>
 #include <ostream>
 
+/*
+ * By defining DMITIGR_FCGI_DEBUG some convenient stuff for debugging
+ * will be available, for example, server_Streambuf::print().
+ */
+//#define DMITIGR_FCGI_DEBUG
+#ifdef DMITIGR_FCGI_DEBUG
+#include <iostream>
+#endif
+
 namespace dmitigr::fcgi::detail {
 
 /**
@@ -37,8 +46,10 @@ public:
   {
     try {
       close();
+    } catch (const std::exception& e) {
+      DMITIGR_DOUT_ALWAYS("dmitigr::fcgi: %s\n", e.what());
     } catch (...) {
-      DMITIGR_DOUT_ALWAYS("dmitigr::fcgi::server_Streambuf::~server_Streambuf(): failure\n");
+      DMITIGR_DOUT_ALWAYS("dmitigr::fcgi: failure\n");
     }
   }
 
@@ -115,7 +126,7 @@ public:
    */
   bool is_closed() const
   {
-    return is_reader() ? !gptr() : !pptr();
+    return is_reader() ? !eback() : !pbase();
   }
 
   /**
@@ -136,23 +147,30 @@ public:
 
 protected:
 
-  // std::streambuf overridinds:
+  // std::streambuf overridings:
 
   server_Streambuf* setbuf(char_type* const buffer, const std::streamsize size) override
   {
-    DMITIGR_REQUIRE(buffer && (64 <= size && size <= 65536) && (size % 8) == 0, std::invalid_argument);
+    DMITIGR_REQUIRE(buffer && (2048 <= size && size <= 65528), std::invalid_argument);
 
-    if ((eback() != nullptr && eback() != buffer_) || (pbase() != nullptr && pbase() != buffer_))
+    if ((eback() != nullptr && eback() != buffer_) ||
+        (pbase() != nullptr && pbase() != buffer_ + sizeof (detail::Header)))
       throw std::runtime_error{"dmitigr::fcgi: cannot set buffer (there are pending data)"};
 
+    constexpr std::streamsize alignment = 8;
     buffer_ = buffer;
-    buffer_size_ = size;
+    buffer_size_ = size - (alignment - math::padding(size, alignment)) % alignment;
 
     if (is_reader()) {
       setg(buffer_, buffer_, buffer_);
       buffer_end_ = buffer_;
       setp(nullptr, nullptr);
     } else {
+      /*
+       * First sizeof(detail::Header) bytes of the buffer_ are reserved for Header.
+       * Last byte of the buffer_ is reserved for byte passed to overflow(). Thus,
+       * epptr() can be used to store this byte.
+       */
       setg(nullptr, nullptr, nullptr);
       setp(buffer_ + sizeof (detail::Header), buffer_ + buffer_size_ - 1);
     }
@@ -280,35 +298,57 @@ protected:
     if (is_end_of_stream_)
       return traits_type::eof();
 
-    if (is_header_must_be_inserted_into_buffer_) {
-      DMITIGR_ASSERT(pbase() == (buffer_ + sizeof (detail::Header)));
-      const std::streamsize content_length = pptr() - buffer_ - sizeof (detail::Header);
-      if (content_length > 0) {
-        /*
-         * The put area contains the data to send. But first we need to place
-         * the header before the data at the reserved space in the beginning
-         * of the buffer_, and align the data by padding.
-         */
-        const auto padding_length = dmitigr::math::padding(content_length, 8);
-        DMITIGR_ASSERT(padding_length <= epptr() - pptr());
-        std::memset(pptr(), 0, static_cast<std::size_t>(padding_length));
-        pbump(static_cast<int>(padding_length));
-        auto* const header = reinterpret_cast<detail::Header*>(buffer_);
-        *header = detail::Header{static_cast<detail::Record_type>(type_),
-                                 connection_->request_id(),
-                                 static_cast<std::size_t>(content_length),
-                                 static_cast<std::size_t>(padding_length)};
-      } else {
-        setp(buffer_, buffer_ + buffer_size_ - 1); // The put area is empty. (Nothing to consume.)
-        DMITIGR_ASSERT(ch == traits_type::eof());
+    const bool is_eof = traits_type::eq_int_type(ch, traits_type::eof());
+
+    DMITIGR_ASSERT(pbase() == (buffer_ + sizeof(detail::Header)));
+    if (std::streamsize content_length = pptr() - pbase()) {
+      /*
+       * If `ch` is not EOF we need to place `ch` at the location pointed to by
+       * pptr(). (It's ok if pptr() == epptr() since that location is a valid
+       * writable location reserved for extra `ch`.)
+       * The content should be aligned by padding if necessary, and the record
+       * header must be injected at the reserved space [buffer_, pbase()).
+       * After that the result record will be ready to send to a client.
+       */
+
+      // Store `ch` if it's not EOF.
+      if (!is_eof) {
+        DMITIGR_ASSERT(pptr() <= epptr());
+        *pptr() = static_cast<char>(ch);
+        pbump(1); // Yes, pptr() > epptr() is possible here, but this is ok.
+        content_length++;
+      }
+
+      // Aligning the content by padding if necessary.
+      const std::streamsize padding_length = dmitigr::math::padding(content_length, 8);
+      DMITIGR_ASSERT(padding_length <= epptr() - pptr() + 1);
+      std::memset(pptr(), 0, static_cast<std::size_t>(padding_length));
+      pbump(static_cast<int>(padding_length));
+
+      // Injecting the header.
+      auto* const header = reinterpret_cast<detail::Header*>(buffer_);
+      *header = detail::Header{static_cast<detail::Record_type>(type_),
+        connection_->request_id(),
+        static_cast<std::size_t>(content_length),
+        static_cast<std::size_t>(padding_length)};
+
+      // Sending the record.
+      if (const auto record_size = pptr() - buffer_; static_cast<std::size_t>(record_size) > sizeof(detail::Header)) {
+        const std::streamsize count = connection_->io_->write(static_cast<const char*>(buffer_), record_size);
+        DMITIGR_ASSERT(count == record_size);
+        is_put_area_at_least_once_consumed_ = true;
       }
     }
+    setp(buffer_ + sizeof(detail::Header), buffer_ + buffer_size_ - 1);
 
     if (is_end_records_must_be_transmitted_) {
-      is_end_records_must_be_transmitted_ = false; // The end records must be transmitted only once.
-      is_header_must_be_inserted_into_buffer_ = false;
+      /*
+       * We'll use buffer_ directly here. (Space before pbase() will be used.)
+       * data_size is a size of data in the buffer_ to send.
+       */
+      std::streamsize data_size{};
 
-      const auto is_empty = [&]()
+      const auto is_empty = [this]()
       {
         return pptr() == pbase() && !is_put_area_at_least_once_consumed_;
       };
@@ -319,50 +359,39 @@ protected:
          * the stream type must be trasmitted, even if the stream is empty.
          * When transmitting a stream of type stderr and there is no errors to
          * report, either no stderr records or one zero-length stderr record
-         * must be transmitted. (For better performance, no stderr records
+         * must be transmitted. (As optimization, no stderr records are
          * transmitted if the stream is empty.)
          */
-        const detail::Header header{static_cast<detail::Record_type>(type_), connection_->request_id(), 0, 0};
-        std::ostream stream{this};
-        stream.write(reinterpret_cast<const char*>(&header), sizeof (header));
+        auto* const header = reinterpret_cast<detail::Header*>(buffer_ + data_size);
+        *header = detail::Header{static_cast<detail::Record_type>(type_), connection_->request_id(), 0, 0};
+        data_size += sizeof(detail::Header);
       }
 
-      const auto* const outbuf = dynamic_cast<server_Streambuf*>(connection_->out().streambuf());
-      DMITIGR_ASSERT(outbuf);
-      const auto* const errbuf = dynamic_cast<server_Streambuf*>(connection_->err().streambuf());
-      DMITIGR_ASSERT(errbuf);
-      const auto opened_count = static_cast<int>(!outbuf->is_closed()) + static_cast<int>(!errbuf->is_closed());
-      if (opened_count == 1) {
-        const detail::End_request_record record{connection_->request_id(),
-                                                connection_->application_status(),
-                                                detail::Protocol_status::request_complete};
-        std::ostream stream{this};
-        stream.write(reinterpret_cast<const char*>(&record), sizeof (record));
+      /*
+       * Assume that the stream of type `out` is closes last. (This must be
+       * guaranteed by the implementation of Listener.)
+       */
+      if (type_ == Type::out) {
+        auto* const record = reinterpret_cast<detail::End_request_record*>(buffer_ + data_size);
+        *record = detail::End_request_record{
+          connection_->request_id(),
+          connection_->application_status(),
+          detail::Protocol_status::request_complete};
+        data_size += sizeof(detail::End_request_record);
       }
 
+      if (data_size > 0) {
+        const std::streamsize count = connection_->io_->write(static_cast<const char*>(buffer_), data_size);
+        DMITIGR_ASSERT(count == data_size);
+      }
+
+      is_end_records_must_be_transmitted_ = false;
       is_end_of_stream_ = true;
     }
 
-    auto record_length = pptr() - buffer_;
-    if (record_length > 0) {
-      DMITIGR_ASSERT(pptr() == epptr() || traits_type::eq_int_type(ch, traits_type::eof()));
-      if (!traits_type::eq_int_type(ch, traits_type::eof())) {
-        DMITIGR_ASSERT(epptr() == buffer_ + buffer_size_ - 1);
-        buffer_[buffer_size_ - 1] = static_cast<char>(ch);
-        record_length++;
-      }
-      const std::streamsize count = connection_->io_->write(static_cast<const char*>(buffer_), record_length);
-      DMITIGR_ASSERT(count == record_length);
-      setp(buffer_, buffer_ + buffer_size_ - 1);
-      is_put_area_at_least_once_consumed_ = true;
-    }
-
-    if (is_header_must_be_inserted_into_buffer_)
-      pbump(sizeof (detail::Header)); // Reserve space for the header in the buffer_.
-
     DMITIGR_ASSERT(is_invariant_ok());
 
-    return traits_type::eq_int_type(ch, traits_type::eof()) ? traits_type::not_eof(ch) : ch;
+    return is_eof ? traits_type::not_eof(ch) : ch;
   }
 
 private:
@@ -387,7 +416,6 @@ private:
   bool is_end_of_stream_{};
   bool is_end_records_must_be_transmitted_{};
   bool is_put_area_at_least_once_consumed_{};
-  bool is_header_must_be_inserted_into_buffer_{true};
   char_type* buffer_{};
   char_type* buffer_end_{}; // Used by underflow() to mark the actual end of get area. (buffer_end_ <= buffer_ + buffer_size_).
   std::streamsize buffer_size_{}; // The available size of the area pointed by buffer_.
@@ -402,7 +430,7 @@ private:
     const bool connection_ok = (connection_ != nullptr);
     const bool buffer_ok = (buffer_ != nullptr) &&
       (!is_reader() || ((buffer_end_ != nullptr) && (buffer_end_ <= buffer_ + buffer_size_)));
-    const bool buffer_size_ok = (64 <= buffer_size_ && buffer_size_ <= 65536) && (buffer_size_ % 8 == 0);
+    const bool buffer_size_ok = (buffer_size_ >= 2048) && (buffer_size_ <= 65528) && (buffer_size_ % 8 == 0);
     const bool unread_content_length_ok = (unread_content_length_ <= buffer_size_ &&
       unread_content_length_ <= static_cast<std::streamsize>(detail::Header::max_content_length));
     const bool unread_padding_length_ok = (unread_padding_length_ <= buffer_size_ &&
@@ -426,13 +454,14 @@ private:
     const bool put_area_ok = is_reader() ||
       (is_closed() ||
         ((pbase() <= pptr() && pptr() <= epptr()) &&
-          (!is_header_must_be_inserted_into_buffer_ || (pbase() == buffer_ + sizeof (detail::Header)))));
+          (is_end_of_stream_ || (pbase() == buffer_ + sizeof (detail::Header)))));
     const bool get_area_ok = !is_reader() ||
       (is_closed() ||
         (eback() <= gptr() && gptr() <= egptr() && egptr() <= buffer_end_));
 
     const bool result = connection_ok && buffer_ok && buffer_size_ok && unread_content_length_ok && unread_padding_length_ok &&
       reader_ok & closed_ok && put_area_ok && get_area_ok;
+
     return result;
   }
 
@@ -582,6 +611,17 @@ private:
 
     DMITIGR_ASSERT(is_invariant_ok());
   }
+
+#ifdef DMITIGR_FCGI_DEBUG
+  template<typename ... Types>
+  void print(Types&& ... msgs) const
+  {
+    if (type_ == Stream_type::out) {
+      ((std::cerr << std::forward<Types>(msgs) << " "), ...);
+      std::cerr << std::endl;
+    }
+  }
+#endif
 };
 
 } // namespace dmitigr::fcgi::detail

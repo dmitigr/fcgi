@@ -23,7 +23,7 @@ protected:
   /**
    * @par Requires
    * The valid memory area in range of [buffer, buffer + size) and
-   * `(buffer && (64 <= size && size <= 65536) && (size % 8) == 0)`.
+   * `(buffer && (2048 <= size && size <= 65528))`.
    *
    * @returns `this`.
    *
