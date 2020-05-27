@@ -73,8 +73,6 @@ private:
   {
     return true;
   }
-
-  iListener_options() = default;
 };
 
 } // namespace dmitigr::fcgi::detail
