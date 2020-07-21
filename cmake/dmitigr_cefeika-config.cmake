@@ -6,7 +6,13 @@ function(dmitigr_cefeika_load_with_deps component)
   #
   # Loading the dependencies
   #
-  foreach(dep ${dmitigr_cefeika_${component}_deps})
+  string(FIND "${component}" "thirdparty_" pos)
+  if (pos EQUAL 0)
+    set(comp "${component}")
+  else()
+    string(REGEX REPLACE "^([a-z0-9]+).*" "\\1" comp "${component}")
+  endif()
+  foreach(dep ${dmitigr_cefeika_${comp}_deps})
     dmitigr_cefeika_load_with_deps(${dep})
   endforeach()
 
