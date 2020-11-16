@@ -18,6 +18,9 @@ namespace dmitigr::fcgi {
  */
 class Stream {
 public:
+  /// The destructor.
+  virtual ~Stream() = default;
+
   /**
    * @returns The controlled Streambuf instance.
    */

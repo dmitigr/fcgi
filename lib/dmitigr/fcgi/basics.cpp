@@ -123,7 +123,7 @@ struct Header final {
   {
     DMITIGR_ASSERT(io);
 
-    const std::size_t count = io->read(reinterpret_cast<char*>(this), sizeof(*this));
+    const auto count = io->read(reinterpret_cast<char*>(this), sizeof(*this));
     if (count != sizeof(*this))
       throw std::runtime_error{"dmitigr::fcgi: protocol violation"};
     check_validity();
@@ -172,7 +172,7 @@ struct Header final {
    */
   std::size_t content_length() const
   {
-    return (content_length_b1_ << 8) + content_length_b0_;
+    return static_cast<std::size_t>(content_length_b1_ << 8) + content_length_b0_;
   }
 
   /**
@@ -247,8 +247,8 @@ struct Begin_request_body final {
   {
     DMITIGR_ASSERT(io);
 
-    const std::size_t count = io->read(reinterpret_cast<char*>(this), sizeof(*this));
-    if (count != sizeof(*this))
+    const auto count = io->read(reinterpret_cast<char*>(this), sizeof(*this));
+    if (static_cast<std::size_t>(count) != sizeof(*this))
       throw std::runtime_error{"dmitigr::fcgi: protocol violation"};
   }
 
@@ -456,7 +456,7 @@ public:
 
     const auto read_data = [&](const int count) -> std::unique_ptr<char[]>
     {
-      std::unique_ptr<char[]> result{new char[count]};
+      std::unique_ptr<char[]> result{new char[static_cast<unsigned>(count)]};
       stream.read(result.get(), count);
       if (stream.gcount() == count)
         return result;
@@ -469,7 +469,7 @@ public:
       if (const int name_length = read_length(); name_length != Traits_type::eof()) {
         if (const int value_length = read_length(); value_length != Traits_type::eof()) {
           auto data = read_data(name_length + value_length);
-          add(std::move(data), name_length, value_length);
+          add(std::move(data), static_cast<unsigned>(name_length), static_cast<unsigned>(value_length));
         } else
           throw std::runtime_error{"dmitigr::fcgi: protocol violation"};
       } else

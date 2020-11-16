@@ -2,8 +2,8 @@
 # Copyright (C) Dmitry Igrishin
 # For conditions of distribution and use, see file LICENSE.txt
 
-cmake_minimum_required(VERSION 3.17)
-cmake_policy(VERSION 3.17)
+cmake_minimum_required(VERSION 3.13)
+cmake_policy(VERSION 3.13)
 project(dmitigr_cefeika)
 
 if (NOT (UNIX OR WIN32))
@@ -32,8 +32,10 @@ set(DMITIGR_CEFEIKA_WITH_ZLIB False CACHE BOOL
   "Link to Zlib where possible?")
 set(DMITIGR_LIBRARIAN_DEBUG FALSE CACHE BOOL
   "Print librarian.cmake debug output?")
+set(DMITIGR_CEFEIKA_CLANG_USE_LIBCPP TRUE CACHE BOOL
+  "Use libc++ with Clang?")
 
-if(NOT DMITIGR_CEFEIKA_HEADER_ONLY)
+if (NOT DMITIGR_CEFEIKA_HEADER_ONLY)
   if(BUILD_SHARED_LIBS)
     message("The mode of building shared Dmitigr Cefeika libraries is set.")
   else()
@@ -47,6 +49,12 @@ if(NOT DMITIGR_CEFEIKA_HEADER_ONLY)
   message("Dmitigr Cefeika build type it set to ${CMAKE_BUILD_TYPE}")
 else()
   message("Dmitigr Cefeika header-only mode is set.")
+endif()
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  if (DMITIGR_CEFEIKA_CLANG_USE_LIBCPP)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+  endif()
 endif()
 
 # ------------------------------------------------------------------------------
@@ -104,15 +112,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CXX_STANDARD_REQUIRED ON)
 
 # ------------------------------------------------------------------------------
-# Include directories
-# ------------------------------------------------------------------------------
-
-include_directories(BEFORE
-  ${CMAKE_CURRENT_SOURCE_DIR}/lib
-  ${CMAKE_CURRENT_BINARY_DIR}/lib
-  )
-
-# ------------------------------------------------------------------------------
 # Third-party dependencies
 # ------------------------------------------------------------------------------
 
@@ -124,6 +123,11 @@ if ("ws" IN_LIST dmitigr_cefeika_libraries)
   add_subdirectory(thirdparty/uv)
   add_subdirectory(thirdparty/usockets)
   add_subdirectory(thirdparty/uwebsockets)
+endif()
+
+if ("wscl" IN_LIST dmitigr_cefeika_libraries)
+  add_subdirectory(thirdparty/buffer)
+  add_subdirectory(thirdparty/uwsc)
 endif()
 
 # ------------------------------------------------------------------------------
@@ -172,11 +176,11 @@ foreach(lib ${dmitigr_cefeika_libraries})
 
   add_subdirectory(lib/dmitigr/${lib})
 
-  # ------------------------------------
-  # Unconditional preprocessing
-  # ------------------------------------
-
   dmitigr_set_library_info_lib_variables(${lib})
+
+  # -------------
+  # Documentation
+  # -------------
 
   configure_file(doc/Doxyfile.in
     ${CMAKE_CURRENT_SOURCE_DIR}/doc/${lib}/Doxyfile @ONLY
@@ -268,7 +272,7 @@ foreach(lib ${dmitigr_cefeika_libraries})
     set(output_name "dmitigr_${lib}")
     if(BUILD_SHARED_LIBS)
       target_compile_definitions(${lib}
-        PRIVATE DMITIGR_CEFEIKA_DLL_BUILDING
+        PRIVATE DMITIGR_${LIB}_DLL_BUILDING
         PUBLIC  DMITIGR_${LIB}_DLL)
     elseif(WIN32)
       set(output_name "dmitigr_${lib}_static")
@@ -295,12 +299,22 @@ foreach(lib ${dmitigr_cefeika_libraries})
     target_include_directories(${lib}
       PRIVATE ${dmitigr_${lib}_target_include_directories_private}
       PUBLIC  ${dmitigr_${lib}_target_include_directories_public})
+
+    target_include_directories(${lib} BEFORE PRIVATE
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/lib>
+      )
   else() # header-only
     target_compile_definitions(${lib}
       INTERFACE ${dmitigr_${lib}_target_compile_definitions_interface})
 
     target_include_directories(${lib}
       INTERFACE ${dmitigr_${lib}_target_include_directories_interface})
+
+    target_include_directories(${lib} BEFORE INTERFACE
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/lib>
+      )
   endif()
 
   # ------------------------------------
@@ -365,12 +379,22 @@ foreach(lib ${dmitigr_cefeika_libraries})
   # ------------------------------------
 
   add_custom_command(TARGET dmitigr_cefeika_uninstall PRE_BUILD
-    COMMAND cmake -E remove -f ${CMAKE_INSTALL_PREFIX}/${DMITIGR_CEFEIKA_CMAKE_INSTALL_DIR}/dmitigr_${lib}*
-    COMMAND cmake -E remove -f ${CMAKE_INSTALL_PREFIX}/${DMITIGR_CEFEIKA_DOC_INSTALL_DIR}/dmitigr_${lib}*
-    COMMAND cmake -E remove -f ${CMAKE_INSTALL_PREFIX}/${DMITIGR_CEFEIKA_LIB_INSTALL_DIR}/dmitigr_${lib}*
-    COMMAND cmake -E remove -f ${CMAKE_INSTALL_PREFIX}/${DMITIGR_CEFEIKA_LIB_INSTALL_DIR}/libdmitigr_${lib}*
-    COMMAND cmake -E remove -f ${CMAKE_INSTALL_PREFIX}/${DMITIGR_CEFEIKA_INCLUDE_INSTALL_DIR}/dmitigr/${lib}*
-    COMMAND cmake -E remove_directory ${CMAKE_INSTALL_PREFIX}/${DMITIGR_CEFEIKA_INCLUDE_INSTALL_DIR}/dmitigr/${lib})
+    COMMAND cmake -E rm -f ${CMAKE_INSTALL_PREFIX}/${DMITIGR_CEFEIKA_CMAKE_INSTALL_DIR}/dmitigr_${lib}*
+    COMMAND cmake -E rm -f ${CMAKE_INSTALL_PREFIX}/${DMITIGR_CEFEIKA_DOC_INSTALL_DIR}/dmitigr_${lib}*
+    COMMAND cmake -E rm -f ${CMAKE_INSTALL_PREFIX}/${DMITIGR_CEFEIKA_LIB_INSTALL_DIR}/dmitigr_${lib}*
+    COMMAND cmake -E rm -f ${CMAKE_INSTALL_PREFIX}/${DMITIGR_CEFEIKA_LIB_INSTALL_DIR}/libdmitigr_${lib}*
+    COMMAND cmake -E rm -rf ${CMAKE_INSTALL_PREFIX}/${DMITIGR_CEFEIKA_INCLUDE_INSTALL_DIR}/dmitigr/${lib}*
+    COMMAND cmake -E rm -rf ${CMAKE_INSTALL_PREFIX}/${DMITIGR_CEFEIKA_INCLUDE_INSTALL_DIR}/dmitigr/${lib})
+
+  dmitigr_cefeika_get_deps(res ${lib})
+  foreach(dep ${res})
+    string(FIND "${dep}" "thirdparty_" pos)
+    if (pos EQUAL 0)
+      string(SUBSTRING "${dep}" 11 -1 dep)
+      add_custom_command(TARGET dmitigr_cefeika_uninstall PRE_BUILD
+        COMMAND cmake -E rm -rf ${CMAKE_INSTALL_PREFIX}/${DMITIGR_CEFEIKA_INCLUDE_INSTALL_DIR}/dmitigr/thirdparty/*${dep}*)
+    endif()
+  endforeach()
 endforeach()
 
 # ------------------------------------------------------------------------------

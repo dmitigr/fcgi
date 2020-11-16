@@ -24,8 +24,8 @@
 #define DMITIGR_MATH_MATH_HPP
 
 #include "dmitigr/math/version.hpp"
-#include <dmitigr/base/debug.hpp>
 
+#include <cassert>
 #include <utility>
 
 namespace dmitigr::math {
@@ -53,49 +53,47 @@ public:
   using Type = Interval_type;
 
   /// Constructs closed [{},{}] interval.
-  Interval() = default;
+  Interval() noexcept = default;
 
   /// Constructs closed [min, max] interval.
-  Interval(T min, T max)
+  explicit Interval(T min, T max) noexcept
     : type_{Type::closed}
     , min_{std::move(min)}
     , max_{std::move(max)}
-  {}
+  {
+    assert(min_ <= max_);
+  }
 
-  /**
-   * Constructs the interval of the specified type.
-   */
-  Interval(const Type type, T min, T max)
+  /// Constructs the interval of the specified type.
+  explicit Interval(const Type type, T min, T max) noexcept
     : type_{type}
     , min_{std::move(min)}
     , max_{std::move(max)}
   {
-    if (type_ == Type::closed)
-      DMITIGR_REQUIRE(min_ <= max_, std::invalid_argument);
-    else
-      DMITIGR_REQUIRE(min_ < max_, std::invalid_argument);
+    assert((type_ == Type::closed && min_ <= max_) ||
+      (type_ != Type::closed && min_ < max_));
   }
 
   /// @returns [min, max] interval.
-  static Interval make_closed(T min, T max)
+  static Interval make_closed(T min, T max) noexcept
   {
     return {Type::closed, std::move(min), std::move(max)};
   }
 
   /// @returns (min, max) interval.
-  static Interval make_open(T min, T max)
+  static Interval make_open(T min, T max) noexcept
   {
     return {Type::open, std::move(min), std::move(max)};
   }
 
   /// @returns (min, max] interval.
-  static Interval make_lopen(T min, T max)
+  static Interval make_lopen(T min, T max) noexcept
   {
     return {Type::lopen, std::move(min), std::move(max)};
   }
 
   /// @returns [min, max) interval.
-  static Interval make_ropen(T min, T max)
+  static Interval make_ropen(T min, T max) noexcept
   {
     return {Type::ropen, std::move(min), std::move(max)};
   }
@@ -119,14 +117,14 @@ public:
   }
 
   /// @returns `true` if value belongs to interval, or `false` otherwise.
-  bool has(const T& value) const
+  bool has(const T& value) const noexcept
   {
     switch (type_) {
     case Type::closed: return (min_ <= value) && (value <= max_); // []
     case Type::open:   return (min_ <  value) && (value <  max_); // ()
     case Type::lopen:  return (min_ <  value) && (value <= max_); // (]
     case Type::ropen:  return (min_ <= value) && (value <  max_); // [)
-    default: DMITIGR_ASSERT_ALWAYS(!true);
+    default: assert(false);
     }
   }
 
@@ -136,7 +134,7 @@ public:
    * @par Effects
    * The state of this instance as if it default constructed.
    */
-  std::pair<T, T> release()
+  std::pair<T, T> release() noexcept
   {
     std::pair<T, T> result{std::move(min_), std::move(max_)};
     *this = {};
@@ -150,10 +148,51 @@ private:
 };
 
 /**
+ * @returns An average of values.
+ *
+ * @param data Input data
+ */
+template<class Container>
+constexpr double avg(const Container& data) noexcept
+{
+  double result{};
+  const auto data_size = data.size();
+  for (const double num : data)
+    result += (num / static_cast<double>(data_size));
+  return result;
+}
+
+/**
+ * @returns A dispersion of values.
+ *
+ * @param data Input data.
+ * @param avg An average of `data`.
+ * @param general Is the `data` represents general population?
+ */
+template<class Container>
+constexpr double dispersion(const Container& data, const double avg, const bool general = true) noexcept
+{
+  double result{};
+  const auto data_size = general ? data.size() : data.size() - 1;
+  for (const double num : data) {
+    const double d = num - avg;
+    result += (d * d) / static_cast<double>(data_size);
+  }
+  return result;
+}
+
+/// @overload
+template<class Container>
+constexpr double dispersion(const Container& data, const bool general = true) noexcept
+{
+  return dispersion(data, avg(data), general);
+}
+
+/**
  * @returns `true` if `number` is a power of 2, or `false` otherwise.
  */
 template<typename T>
-constexpr bool is_power_of_two(const T number)
+constexpr bool is_power_of_two(const T number) noexcept
 {
   return (number & (number - 1)) == 0;
 }
@@ -166,11 +205,11 @@ constexpr bool is_power_of_two(const T number)
  * `is_power_of_two(alignment)`.
  */
 template<typename T, typename U>
-constexpr T padding(const T size, const U alignment)
+constexpr auto padding(const T size, const U alignment) noexcept
 {
-  DMITIGR_REQUIRE(is_power_of_two(alignment), std::invalid_argument);
-  const T a = alignment;
-  return (static_cast<T>(0) - size) & (a - 1);
+  assert(is_power_of_two(alignment));
+  const auto a = alignment;
+  return (static_cast<T>(0) - size) & static_cast<T>(a - 1);
 }
 
 /**
@@ -180,9 +219,9 @@ constexpr T padding(const T size, const U alignment)
  * `is_power_of_two(alignment)`.
  */
 template<typename T, typename U>
-constexpr T aligned(const T size, const U alignment)
+constexpr T aligned(const T size, const U alignment) noexcept
 {
-  DMITIGR_REQUIRE(is_power_of_two(alignment), std::invalid_argument);
+  assert(is_power_of_two(alignment));
   const T a = alignment;
   return (size + (a - 1)) & -a;
 }

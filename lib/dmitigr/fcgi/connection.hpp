@@ -18,6 +18,9 @@ namespace dmitigr::fcgi {
  */
 class Connection_parameter {
 public:
+  /// The destructor.
+  virtual ~Connection_parameter() = default;
+
   /**
    * @returns The parameter name.
    */

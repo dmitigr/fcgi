@@ -494,8 +494,8 @@ private:
   Process_header_result process_header(const detail::Header header)
   {
     header.check_validity();
-    unread_content_length_ = header.content_length();
-    unread_padding_length_ = header.padding_length();
+    unread_content_length_ = static_cast<decltype(unread_content_length_)>(header.content_length());
+    unread_padding_length_ = static_cast<decltype(unread_content_length_)>(header.padding_length());
 
     const auto end_request = [&](const detail::Protocol_status protocol_status)
     {
@@ -558,11 +558,13 @@ private:
           *p++ = static_cast<unsigned char>(value);     // value
         }
 
-        const std::size_t content_length = p - content_offset;
-        const std::size_t padding_length = math::padding(static_cast<std::streamsize>(content_length), 8);
-        const std::streamsize record_length = sizeof(detail::Header) + content_length + padding_length;
-        auto* const h = reinterpret_cast<detail::Header*>(record.data());
-        *h = detail::Header{detail::Record_type::get_values_result, detail::Header::null_request_id, content_length, padding_length};
+        using detail::Header;
+        const auto content_length = p - content_offset;
+        const auto padding_length = math::padding(content_length, 8);
+        const auto record_length = static_cast<int>(sizeof(Header)) + content_length + padding_length;
+        auto* const h = reinterpret_cast<Header*>(record.data());
+        *h = detail::Header{detail::Record_type::get_values_result,
+          Header::null_request_id, static_cast<std::size_t>(content_length), static_cast<std::size_t>(padding_length)};
         const auto count = connection_->io_->write(reinterpret_cast<const char*>(record.data()), record_length);
         DMITIGR_ASSERT_ALWAYS(count == record_length);
       } else {
