@@ -5,7 +5,8 @@
 #include "dmitigr/fcgi/basics.hpp"
 #include "dmitigr/fcgi/streambuf.hpp"
 #include "dmitigr/fcgi/streams.hpp"
-#include <dmitigr/base/debug.hpp>
+
+#include <cassert>
 
 namespace dmitigr::fcgi::detail {
 
@@ -32,7 +33,7 @@ public:
     , streambuf_{connection, buffer, buffer_size, Stream_type::params}
   {
     // Reading the parameters.
-    DMITIGR_ASSERT(stream_type() == Stream_type::params);
+    assert(stream_type() == Stream_type::params);
     connection->parameters_ = detail::Names_values{*this, 32};
     if (!eof() || bad())
       throw std::runtime_error{"dmitigr::fcgi: unexpected input stream state after parameters read attempt"};
@@ -89,7 +90,7 @@ public:
     : iOstream{&streambuf_}
     , streambuf_{connection, buffer, buffer_size, type}
   {
-    DMITIGR_ASSERT(stream_type() == Stream_type::out || stream_type() == Stream_type::err);
+    assert(stream_type() == Stream_type::out || stream_type() == Stream_type::err);
   }
 
   server_Streambuf* streambuf() const override

@@ -4,7 +4,8 @@
 
 #include "dmitigr/fcgi/listener_options.hpp"
 #include <dmitigr/net/net.hpp>
-#include <dmitigr/base/debug.hpp>
+
+#include <cassert>
 
 namespace dmitigr::fcgi::detail {
 
@@ -19,7 +20,7 @@ public:
   explicit iListener_options(net::Listener_options options)
     : options_{std::move(options)}
   {
-    DMITIGR_ASSERT(is_invariant_ok());
+    assert(is_invariant_ok());
   }
 
 #ifdef _WIN32

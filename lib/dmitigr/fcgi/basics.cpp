@@ -4,12 +4,12 @@
 
 #include "dmitigr/fcgi/basics.hpp"
 #include "dmitigr/fcgi/connection.hpp"
-#include <dmitigr/base/debug.hpp>
-#include <dmitigr/math/math.hpp>
+#include <dmitigr/misc/math.hpp>
 #include <dmitigr/net/descriptor.hpp>
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <cstddef>
 #include <cstring>
 #include <istream>
@@ -121,8 +121,7 @@ struct Header final {
    */
   explicit Header(net::Descriptor* const io)
   {
-    DMITIGR_ASSERT(io);
-
+    assert(io);
     const auto count = io->read(reinterpret_cast<char*>(this), sizeof(*this));
     if (count != sizeof(*this))
       throw std::runtime_error{"dmitigr::fcgi: protocol violation"};
@@ -140,7 +139,7 @@ struct Header final {
     , content_length_b0_{static_cast<unsigned char>( content_len       & 0xff)}
     , padding_length_{static_cast<unsigned char>(padding_len)}
   {
-    DMITIGR_ASSERT((content_len <= max_content_length) && (padding_len <= max_padding_length));
+    assert((content_len <= max_content_length) && (padding_len <= max_padding_length));
   }
 
   /**
@@ -245,8 +244,7 @@ struct Begin_request_body final {
    */
   explicit Begin_request_body(net::Descriptor* const io)
   {
-    DMITIGR_ASSERT(io);
-
+    assert(io);
     const auto count = io->read(reinterpret_cast<char*>(this), sizeof(*this));
     if (static_cast<std::size_t>(count) != sizeof(*this))
       throw std::runtime_error{"dmitigr::fcgi: protocol violation"};
@@ -433,7 +431,7 @@ public:
    */
   explicit Names_values(std::istream& stream, const std::size_t reserve = 0)
   {
-    DMITIGR_ASSERT(stream && (reserve <= 64));
+    assert(stream && (reserve <= 64));
 
     using Traits_type = std::istream::traits_type;
 
@@ -509,7 +507,7 @@ public:
    */
   const Name_value* pair(const std::size_t index) const
   {
-    DMITIGR_ASSERT(index < pair_count());
+    assert(index < pair_count());
     return &pairs_[index];
   }
 
@@ -530,7 +528,7 @@ public:
    */
   void add(const char* const name, const char* const value)
   {
-    DMITIGR_ASSERT(name && value);
+    assert(name && value);
     const std::size_t name_size = std::strlen(name);
     const std::size_t value_size = std::strlen(value);
     std::unique_ptr<char[]> data{new char[name_size + value_size]};

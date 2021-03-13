@@ -7,10 +7,11 @@
 #include "dmitigr/fcgi/listener_options.hpp"
 #include "dmitigr/fcgi/server_connection.hpp"
 #include "dmitigr/fcgi/streams.hpp"
-#include <dmitigr/base/debug.hpp>
 #include <dmitigr/net/net.hpp>
 
 #include <array>
+#include <cassert>
+#include <cstdio>
 #include <limits>
 
 namespace dmitigr::fcgi::detail {
@@ -47,9 +48,9 @@ public:
       // -----------------------------------------------------------------------
 
     } catch (const std::exception& e) {
-      DMITIGR_DOUT_ALWAYS("dmitigr::fcgi: %s\n", e.what());
+      std::fprintf(stderr, "dmitigr::fcgi: %s\n", e.what());
     } catch (...) {
-      DMITIGR_DOUT_ALWAYS("dmitigr::fcgi: failure\n");
+      std::fprintf(stderr, "dmitigr::fcgi: failure\n");
     }
   }
 
@@ -156,7 +157,7 @@ public:
     {
       const detail::End_request_record record{header.request_id(), 0, protocol_status};
       const auto count = io->write(reinterpret_cast<const char*>(&record), sizeof(record));
-      DMITIGR_ASSERT_ALWAYS(count == sizeof(record));
+      assert(count == sizeof(record));
     };
 
     if (header.record_type() == detail::Record_type::begin_request &&

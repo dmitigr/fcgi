@@ -20,13 +20,17 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// This file is generated automatically. Edit lib.hpp.in instead!!!!!!!!!!!!!!!!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#ifndef DMITIGR_MISC_FILESYSTEM_HPP
+#define DMITIGR_MISC_FILESYSTEM_HPP
 
-#ifndef DMITIGR_TESTO_HPP
-#define DMITIGR_TESTO_HPP
+#if (defined(__clang__) && (__clang_major__ < 7)) || \
+    (defined(__GNUG__)  && (__GNUC__ < 8) && !defined (__clang__))
+  #include <experimental/filesystem>
+  namespace std {
+  namespace filesystem = experimental::filesystem;
+  } // namespace std
+#else
+  #include <filesystem>
+#endif
 
-#include "dmitigr/testo/testo.hpp"
-
-#endif  // DMITIGR_TESTO_HPP
+#endif // DMITIGR_MISC_FILESYSTEM_HPP

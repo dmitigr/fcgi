@@ -1,9 +1,9 @@
 // -*- C++ -*-
 // Copyright (C) Dmitry Igrishin
-// For conditions of distribution and use, see files LICENSE.txt or fcgi.hpp
+// For conditions of distribution and use, see files LICENSE.txt
 
 #include <dmitigr/fcgi.hpp>
-#include <dmitigr/testo.hpp>
+#include <dmitigr/misc/testo.hpp>
 
 #include <atomic>
 #include <cassert>

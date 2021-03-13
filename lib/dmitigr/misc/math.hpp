@@ -20,10 +20,8 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-#ifndef DMITIGR_MATH_MATH_HPP
-#define DMITIGR_MATH_MATH_HPP
-
-#include "dmitigr/math/version.hpp"
+#ifndef DMITIGR_MISC_MATH_HPP
+#define DMITIGR_MISC_MATH_HPP
 
 #include <cassert>
 #include <utility>
@@ -188,9 +186,7 @@ constexpr double dispersion(const Container& data, const bool general = true) no
   return dispersion(data, avg(data), general);
 }
 
-/**
- * @returns `true` if `number` is a power of 2, or `false` otherwise.
- */
+/// @returns `true` if `number` is a power of 2.
 template<typename T>
 constexpr bool is_power_of_two(const T number) noexcept
 {
@@ -228,4 +224,4 @@ constexpr T aligned(const T size, const U alignment) noexcept
 
 } // namespace dmitigr::math
 
-#endif  // DMITIGR_MATH_MATH_HPP
+#endif  // DMITIGR_MISC_MATH_HPP

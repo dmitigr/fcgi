@@ -20,13 +20,29 @@
 // Dmitry Igrishin
 // dmitigr@gmail.com
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// This file is generated automatically. Edit lib.hpp.in instead!!!!!!!!!!!!!!!!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#ifndef DMITIGR_MISC_ENDIANNESS_HPP
+#define DMITIGR_MISC_ENDIANNESS_HPP
 
-#ifndef DMITIGR_MATH_HPP
-#define DMITIGR_MATH_HPP
+namespace dmitigr {
 
-#include "dmitigr/math/math.hpp"
+/// An endianness.
+enum class Endianness {
+  unknown = 0,
+  big,
+  little
+};
 
-#endif  // DMITIGR_MATH_HPP
+/// @returns Endianness of the system.
+inline Endianness endianness() noexcept
+{
+  if constexpr (sizeof(unsigned char) < sizeof(unsigned long)) {
+    constexpr unsigned long number = 0x01;
+    static const auto result = (reinterpret_cast<const unsigned char*>(&number)[0] == 1) ? Endianness::little : Endianness::big;
+    return result;
+  } else
+    return Endianness::unknown;
+}
+
+} // namespace dmitigr
+
+#endif  // DMITIGR_MISC_ENDIANNESS_HPP

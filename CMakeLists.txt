@@ -202,14 +202,16 @@ foreach(lib ${dmitigr_cefeika_libraries})
     set(dmitigr_${lib}_header_only ${DMITIGR_CEFEIKA_HEADER_ONLY})
   endif()
 
-  # Root headers
-  configure_file(lib/dmitigr/lib.hpp.in
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/dmitigr/${lib}.hpp @ONLY
-    NEWLINE_STYLE UNIX)
-  list(APPEND dmitigr_${lib}_root_headers "../${lib}.hpp")
+  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/dmitigr/${lib}/${lib}.hpp)
+    # Root headers
+    configure_file(lib/dmitigr/lib.hpp.in
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/dmitigr/${lib}.hpp @ONLY
+      NEWLINE_STYLE UNIX)
+    list(APPEND dmitigr_${lib}_root_headers "../${lib}.hpp")
 
-  # Headers
-  list(APPEND dmitigr_${lib}_headers ${lib}.hpp)
+    # Headers
+    list(APPEND dmitigr_${lib}_headers ${lib}.hpp)
+  endif()
 
   if(NOT ${dmitigr_${lib}_header_only})
     # Preprocessed headers
@@ -416,7 +418,7 @@ if(DMITIGR_CEFEIKA_BUILD_TESTS)
     set(exe "${full_name}")
     set(src "${CMAKE_CURRENT_SOURCE_DIR}/test/${lib}/${full_name}.cpp")
     add_executable(${exe} ${src})
-    target_link_libraries(${exe} PRIVATE dmitigr::testo dmitigr::${lib} ${dmitigr_${lib}_tests_target_link_libraries})
+    target_link_libraries(${exe} PRIVATE dmitigr::misc dmitigr::${lib} ${dmitigr_${lib}_tests_target_link_libraries})
     dmitigr_target_compile_options(${exe})
     if(is_unit_test)
       add_test(NAME ${exe} COMMAND ${exe})

@@ -4,7 +4,8 @@
 
 #include "dmitigr/fcgi/basics.hpp"
 #include "dmitigr/fcgi/server_connection.hpp"
-#include <dmitigr/base/debug.hpp>
+
+#include <cassert>
 
 namespace dmitigr::fcgi::detail {
 
@@ -22,8 +23,8 @@ public:
     , role_{role}
     , request_id_{request_id}
   {
-    DMITIGR_REQUIRE(io, std::invalid_argument);
     io_ = std::move(io);
+    assert(io_);
   }
 
   // ---------------------------------------------------------------------------
@@ -53,16 +54,13 @@ public:
   std::size_t parameter_index_throw(const std::string_view name) const override
   {
     const auto result = parameter_index(name);
-    DMITIGR_REQUIRE(result, std::out_of_range,
-      "the instance of dmitigr::fcgi::Server_connection has no parameter \"" + std::string{name} + "\"");
+    assert(result);
     return *result;
   }
 
   const detail::Name_value* parameter(const std::size_t index) const override
   {
-    DMITIGR_REQUIRE(index < parameter_count(), std::out_of_range,
-      "invalid parameter index (" + std::to_string(index) + ")"
-      " of the dmitigr::fcgi::Server_connection instance");
+    assert(index < parameter_count());
     return parameters_.pair(index);
   }
 

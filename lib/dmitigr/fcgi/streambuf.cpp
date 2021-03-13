@@ -5,11 +5,12 @@
 #include "dmitigr/fcgi/basics.hpp"
 #include "dmitigr/fcgi/server_connection.hpp"
 #include "dmitigr/fcgi/streambuf.hpp"
-#include <dmitigr/base/debug.hpp>
-#include <dmitigr/math/math.hpp>
+#include <dmitigr/misc/math.hpp>
 
 #include <algorithm>
 #include <array>
+#include <cassert>
+#include <cstdio>
 #include <istream>
 #include <limits>
 #include <ostream>
@@ -47,9 +48,9 @@ public:
     try {
       close();
     } catch (const std::exception& e) {
-      DMITIGR_DOUT_ALWAYS("dmitigr::fcgi: %s\n", e.what());
+      std::fprintf(stderr, "dmitigr::fcgi: %s\n", e.what());
     } catch (...) {
-      DMITIGR_DOUT_ALWAYS("dmitigr::fcgi: failure\n");
+      std::fprintf(stderr, "dmitigr::fcgi: failure\n");
     }
   }
 
@@ -65,13 +66,11 @@ public:
     : type_{type}
     , connection_{connection}
   {
-    DMITIGR_REQUIRE(connection, std::invalid_argument);
-
+    assert(connection);
     setg(nullptr, nullptr, nullptr);
     setp(nullptr, nullptr);
     setbuf(buffer, buffer_size);
-
-    DMITIGR_ASSERT(is_invariant_ok());
+    assert(is_invariant_ok());
   }
 
   /**
@@ -93,23 +92,23 @@ public:
 
     if (!is_reader()) {
       const auto* const inbuf = dynamic_cast<server_Streambuf*>(connection_->in().streambuf());
-      DMITIGR_ASSERT(inbuf && inbuf->is_reader() && !inbuf->is_closed());
+      assert(inbuf && inbuf->is_reader() && !inbuf->is_closed());
       const auto role = connection_->role();
-      DMITIGR_ASSERT(role == Role::authorizer || inbuf->type_ != Type::params);
+      assert(role == Role::authorizer || inbuf->type_ != Type::params);
       if (role != Role::filter || inbuf->type_ == Type::data || inbuf->unread_content_length_ == 0) {
         is_end_records_must_be_transmitted_ = true;
         sync();
       } else
         throw std::runtime_error{"dmitigr::fcgi: not all stdin has been read by Filter"};
 
-      DMITIGR_ASSERT(is_end_of_stream_ && !is_end_records_must_be_transmitted_);
+      assert(is_end_of_stream_ && !is_end_records_must_be_transmitted_);
     }
 
     setg(nullptr, nullptr, nullptr);
     setp(nullptr, nullptr);
 
-    DMITIGR_ASSERT(is_closed());
-    DMITIGR_ASSERT(is_invariant_ok());
+    assert(is_closed());
+    assert(is_invariant_ok());
   }
 
   /**
@@ -151,7 +150,7 @@ protected:
 
   server_Streambuf* setbuf(char_type* const buffer, const std::streamsize size) override
   {
-    DMITIGR_REQUIRE(buffer && (2048 <= size && size <= 65528), std::invalid_argument);
+    assert(buffer && (2048 <= size && size <= 65528));
 
     if ((eback() != nullptr && eback() != buffer_) ||
         (pbase() != nullptr && pbase() != buffer_ + sizeof (detail::Header)))
@@ -175,7 +174,7 @@ protected:
       setp(buffer_ + sizeof (detail::Header), buffer_ + buffer_size_ - 1);
     }
 
-    DMITIGR_ASSERT(is_invariant_ok());
+    assert(is_invariant_ok());
 
     return this;
   }
@@ -188,7 +187,7 @@ protected:
 
   int_type underflow() override
   {
-    DMITIGR_ASSERT(is_reader() && !is_closed());
+    assert(is_reader() && !is_closed());
 
     if (is_end_of_stream_)
       return traits_type::eof();
@@ -206,7 +205,7 @@ protected:
           throw std::runtime_error{"dmitigr::fcgi: protocol violation"};
       }
 
-      DMITIGR_ASSERT(buffer_end_ - gptr() > 0);
+      assert(buffer_end_ - gptr() > 0);
 
       // Setting up the get area for the content.
       if (unread_content_length_ > 0) {
@@ -214,7 +213,7 @@ protected:
         unread_content_length_ -= count;
         if (!is_content_must_be_discarded_) {
           setg(gptr(), gptr(), gptr() + count); // Get area now contains all available content bytes at the moment.
-          DMITIGR_ASSERT(is_invariant_ok());
+          assert(is_invariant_ok());
           return traits_type::to_int_type(*gptr());
         } else {
           gbump(static_cast<int>(count)); // Discarding.
@@ -225,7 +224,7 @@ protected:
         }
       }
 
-      DMITIGR_ASSERT(unread_content_length_ == 0);
+      assert(unread_content_length_ == 0);
 
       // Skipping the padding.
       if (unread_padding_length_ > 0) {
@@ -236,7 +235,7 @@ protected:
           continue;
       }
 
-      DMITIGR_ASSERT(unread_padding_length_ == 0);
+      assert(unread_padding_length_ == 0);
 
       // ---------------
       // The start point
@@ -252,7 +251,7 @@ protected:
           continue;
       }
 
-      DMITIGR_ASSERT(read_header_length == sizeof (header));
+      assert(read_header_length == sizeof (header));
 
       // Processing the header.
       {
@@ -260,7 +259,7 @@ protected:
         {
           setg(gptr(), gptr(), gptr());
           is_end_of_stream_ = true;
-          DMITIGR_ASSERT(is_invariant_ok());
+          assert(is_invariant_ok());
         };
 
         setg(gptr(), gptr(), gptr());
@@ -293,14 +292,14 @@ protected:
 
   int_type overflow(const int_type ch) override
   {
-    DMITIGR_ASSERT(!is_reader() && !is_closed());
+    assert(!is_reader() && !is_closed());
 
     if (is_end_of_stream_)
       return traits_type::eof();
 
     const bool is_eof = traits_type::eq_int_type(ch, traits_type::eof());
 
-    DMITIGR_ASSERT(pbase() == (buffer_ + sizeof(detail::Header)));
+    assert(pbase() == (buffer_ + sizeof(detail::Header)));
     if (std::streamsize content_length = pptr() - pbase()) {
       /*
        * If `ch` is not EOF we need to place `ch` at the location pointed to by
@@ -313,7 +312,7 @@ protected:
 
       // Store `ch` if it's not EOF.
       if (!is_eof) {
-        DMITIGR_ASSERT(pptr() <= epptr());
+        assert(pptr() <= epptr());
         *pptr() = static_cast<char>(ch);
         pbump(1); // Yes, pptr() > epptr() is possible here, but this is ok.
         content_length++;
@@ -321,7 +320,7 @@ protected:
 
       // Aligning the content by padding if necessary.
       const std::streamsize padding_length = dmitigr::math::padding(content_length, 8);
-      DMITIGR_ASSERT(padding_length <= epptr() - pptr() + 1);
+      assert(padding_length <= epptr() - pptr() + 1);
       std::memset(pptr(), 0, static_cast<std::size_t>(padding_length));
       pbump(static_cast<int>(padding_length));
 
@@ -335,7 +334,7 @@ protected:
       // Sending the record.
       if (const auto record_size = pptr() - buffer_; static_cast<std::size_t>(record_size) > sizeof(detail::Header)) {
         const std::streamsize count = connection_->io_->write(static_cast<const char*>(buffer_), record_size);
-        DMITIGR_ASSERT(count == record_size);
+        assert(count == record_size);
         is_put_area_at_least_once_consumed_ = true;
       }
     }
@@ -382,14 +381,14 @@ protected:
 
       if (data_size > 0) {
         const std::streamsize count = connection_->io_->write(static_cast<const char*>(buffer_), data_size);
-        DMITIGR_ASSERT(count == data_size);
+        assert(count == data_size);
       }
 
       is_end_records_must_be_transmitted_ = false;
       is_end_of_stream_ = true;
     }
 
-    DMITIGR_ASSERT(is_invariant_ok());
+    assert(is_invariant_ok());
 
     return is_eof ? traits_type::not_eof(ch) : ch;
   }
@@ -501,7 +500,7 @@ private:
     {
       const detail::End_request_record record{header.request_id(), 0, protocol_status};
       const auto count = connection_->io_->write(reinterpret_cast<const char*>(&record), sizeof(record));
-      DMITIGR_ASSERT_ALWAYS(count == sizeof(record));
+      assert(count == sizeof(record));
     };
 
     // Called in cases of protocol violation.
@@ -551,7 +550,7 @@ private:
             end_request_protocol_violation();
 
           // Note: name_size + 3 - is a space required to store: {char(name_size), char(1), name.data(), char(value)} string.
-          DMITIGR_ASSERT_ALWAYS(name_size + 3 <= static_cast<std::size_t>(std::cend(record) - p));
+          assert(name_size + 3 <= static_cast<std::size_t>(std::cend(record) - p));
           *p++ = static_cast<unsigned char>(name_size); // name_size
           *p++ = static_cast<unsigned char>(1);         // 1
           p = std::copy(cbegin(name), cend(name), p);   // name.data()
@@ -566,12 +565,12 @@ private:
         *h = detail::Header{detail::Record_type::get_values_result,
           Header::null_request_id, static_cast<std::size_t>(content_length), static_cast<std::size_t>(padding_length)};
         const auto count = connection_->io_->write(reinterpret_cast<const char*>(record.data()), record_length);
-        DMITIGR_ASSERT_ALWAYS(count == record_length);
+        assert(count == record_length);
       } else {
         const detail::Unknown_type_record r{header.record_type()};
         const std::streamsize record_length = sizeof(r);
         const auto count = connection_->io_->write(reinterpret_cast<const char*>(&r), record_length);
-        DMITIGR_ASSERT_ALWAYS(count == record_length);
+        assert(count == record_length);
       }
 
       return Process_header_result::management_processed;
@@ -590,7 +589,7 @@ private:
     else
       end_request_protocol_violation();
 
-    DMITIGR_ASSERT(is_invariant_ok());
+    assert(is_invariant_ok());
 
     return result;
   }
@@ -603,15 +602,13 @@ private:
    */
   void reset_reader(const Type type)
   {
-    DMITIGR_ASSERT_ALWAYS(is_reader() && !is_closed());
-
+    assert(is_reader() && !is_closed());
     type_ = type;
     is_end_of_stream_ = false;
     is_content_must_be_discarded_ = false;
     unread_content_length_ = 0;
     unread_padding_length_ = 0;
-
-    DMITIGR_ASSERT(is_invariant_ok());
+    assert(is_invariant_ok());
   }
 
 #ifdef DMITIGR_FCGI_DEBUG
