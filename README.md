@@ -83,8 +83,75 @@ int main()
 
 ## Usage
 
-Please, see [usage section][dmitigr_cpplipa_usage] for hints how to link the
-library to a project.
+### Quick usage as header-only library
+
+Copy the contents of the `src` directory to a project directory which is under
+an include path of a compiler, for example, `src/3rdparty/dmitigr`.
+
+Create `hello.cpp`:
+
+```C++
+#include "dmitigr/fcgi/fcgi.hpp"
+
+int main()
+{
+  // Application code here...
+}
+```
+
+Compile `hello.cpp`:
+
+```
+g++ -std=c++17 -ohello hello.cpp
+```
+
+### Quick usage with CMake
+
+Create build directory, configure, build and install:
+
+```
+cd fcgi
+mkdir build && cd build
+cmake ..
+cmake --build .
+sudo cmake --install .
+```
+
+Create `hello/hello.cpp`:
+
+```C++
+#include "dmitigr/fcgi/fcgi.hpp"
+
+int main()
+{
+  // Application code here...
+}
+```
+
+Create `hello/CMakeLists.txt`:
+
+```cmake
+cmake_minimum_required(VERSION 3.16)
+project(foo)
+find_package(dmitigr_cpplipa REQUIRED COMPONENTS fcgi)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_executable(hello hello.cpp)
+target_link_libraries(hello dmitigr_fcgi)
+```
+
+Compile `hello/hello.cpp`:
+
+```
+mkdir hello/build && cd hello/build
+cmake ..
+cmake --build .
+```
+
+### Advanced usage
+
+For more details please, see [usage section][dmitigr_cpplipa_usage] for hints
+how to link `dmitigr::fcgi`.
 
 [dmitigr_cpplipa_usage]: https://github.com/dmitigr/cpplipa.git#usage
 
