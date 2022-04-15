@@ -22,7 +22,7 @@
 
 namespace {
 
-constexpr std::size_t pool_size = 64;
+constexpr std::size_t pool_size{64};
 
 } // namespace
 

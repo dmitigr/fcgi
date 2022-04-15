@@ -33,7 +33,7 @@ public:
   /**
    * @brief Constructs the listener.
    */
-  DMITIGR_FCGI_API Listener(Listener_options options);
+  DMITIGR_FCGI_API explicit Listener(Listener_options options);
 
   /**
    * @returns Options of the listener.

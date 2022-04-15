@@ -88,7 +88,7 @@ int main(int, char**)
       << "  working thread pool size = " << pool_size << "\n"
       << "  overload thread pool size = " << overload_pool_size << std::endl;
 
-    fcgi::Listener server{{"0.0.0.0", port, backlog}};
+    fcgi::Listener server{fcgi::Listener_options{"0.0.0.0", port, backlog}};
     DMITIGR_ASSERT(!server.is_listening());
     server.listen();
     DMITIGR_ASSERT(server.is_listening());

@@ -24,7 +24,7 @@ int main()
   try {
     const auto port = 9000;
     const auto backlog = 64;
-    fcgi::Listener server{{"0.0.0.0", port, backlog}};
+    fcgi::Listener server{fcgi::Listener_options{"0.0.0.0", port, backlog}};
     server.listen();
     while (true) {
       if (const auto conn = server.accept()) {

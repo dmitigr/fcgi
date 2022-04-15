@@ -45,7 +45,7 @@ public:
    * @par Effects
    * `endpoint()->communication_mode() == Communication_mode::wnp`.
    */
-  DMITIGR_FCGI_API Listener_options(std::string pipe_name);
+  DMITIGR_FCGI_API explicit Listener_options(std::string pipe_name);
 #else
   /**
    * @returns A new instance of the options for listeners of
@@ -57,7 +57,7 @@ public:
    * @par Effects
    * `endpoint()->communication_mode() == Communication_mode::uds`.
    */
-  DMITIGR_FCGI_API Listener_options(std::filesystem::path path, int backlog);
+  DMITIGR_FCGI_API explicit Listener_options(std::filesystem::path path, int backlog);
 #endif
   /**
    * @overload
@@ -74,7 +74,7 @@ public:
    * @par Effects
    * `endpoint()->communication_mode() == Communication_mode::net`.
    */
-  DMITIGR_FCGI_API Listener_options(std::string address, int port, int backlog);
+  DMITIGR_FCGI_API explicit Listener_options(std::string address, int port, int backlog);
 
   /// @}
 

@@ -14,10 +14,10 @@ int main()
   try {
     const auto port = 9000;
     const auto backlog = 64;
-    const auto server = fcgi::Listener_options::make("0.0.0.0", port, backlog)->make_listener();
-    server->listen();
+    fcgi::Listener server{fcgi::Listener_options{"0.0.0.0", port, backlog}};
+    server.listen();
     while (true) {
-      if (const auto conn = server->accept()) {
+      if (const auto conn = server.accept()) {
         conn->out() << "Content-Type: text/plain" << fcgi::crlfcrlf;
         conn->out() << "Hello from dmitigr::fcgi!";
       }
@@ -39,7 +39,7 @@ int main()
 
 namespace {
 
-constexpr std::size_t pool_size = 64;
+constexpr std::size_t pool_size{64};
 
 } // namespace
 
@@ -64,16 +64,16 @@ int main()
               << "  backlog = " << backlog << "\n"
               << "  thread pool size = " << pool_size << std::endl;
 
-    const auto server = fcgi::Listener_options::make("0.0.0.0", port, backlog)->make_listener();
-    server->listen();
+    fcgi::Listener server{fcgi::Listener_options{"0.0.0.0", port, backlog}};
+    server.listen();
     std::vector<std::thread> threads(pool_size);
     for (auto& t : threads)
-      t = std::thread{serve, server.get()};
+      t = std::thread{serve, &server};
 
     for (auto& t : threads)
       t.join();
 
-    server->close(); // Optional.
+    server.close(); // Optional.
   } catch (const std::exception& e) {
     std::cerr << "error: " << e.what() << std::endl;
     return 1;
