@@ -1,9 +1,21 @@
 // -*- C++ -*-
-// Copyright (C) Dmitry Igrishin
-// For conditions of distribution and use, see files LICENSE.txt
+//
+// Copyright 2022 Dmitry Igrishin
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-#include <dmitigr/fcgi.hpp>
-#include <dmitigr/misc/testo.hpp>
+#include "../../src/base/assert.hpp"
+#include "../../src/fcgi/fcgi.hpp"
 
 #include <atomic>
 #include <cassert>
@@ -57,11 +69,13 @@ int main(int, char**)
         if (is_ready()) {
           const Busyness_counter counter;
           conn->out() << "Content-Type: text/plain" << fcgi::crlfcrlf;
-          std::this_thread::sleep_for(std::chrono::milliseconds{50}); // The busyness imitation.
+          // Simulate being busy.
+          std::this_thread::sleep_for(std::chrono::milliseconds{50});
           conn->out() << "Hello from dmitigr::fcgi!" << fcgi::crlf;
         } else
-          conn->out() << "Status: 503" << fcgi::crlfcrlf; // Report "Service Unavailable".
-        conn->close(); // Optional.
+          // Report "Service Unavailable".
+          conn->out() << "Status: 503" << fcgi::crlfcrlf;
+        conn->close(); // optional.
       }
     };
 
@@ -74,26 +88,25 @@ int main(int, char**)
       << "  working thread pool size = " << pool_size << "\n"
       << "  overload thread pool size = " << overload_pool_size << std::endl;
 
-    const auto server = fcgi::Listener_options::make("0.0.0.0", port, backlog)->make_listener();
-    ASSERT(!server->is_listening());
-    server->listen();
-    ASSERT(server->is_listening());
+    fcgi::Listener server{{"0.0.0.0", port, backlog}};
+    DMITIGR_ASSERT(!server.is_listening());
+    server.listen();
+    DMITIGR_ASSERT(server.is_listening());
 
     std::vector<std::thread> threads(pool_size + overload_pool_size);
     for (auto& t : threads)
-      t = std::thread{serve, server.get()};
+      t = std::thread{serve, &server};
 
     for (auto& t : threads)
       t.join();
 
-    server->close();
-    ASSERT(!server->is_listening());
+    server.close();
+    DMITIGR_ASSERT(!server.is_listening());
   } catch (const std::exception& e) {
-    std::cerr << "error: " << e.what() << std::endl;
+    std::cerr << e.what() << std::endl;
     return 1;
   } catch (...) {
     std::cerr << "unknown error" << std::endl;
     return 2;
   }
-  return 0;
 }

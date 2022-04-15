@@ -1,23 +1,11 @@
-FastCGI implementation in C++ {#mainpage}
-=========================================
+# FastCGI implementation in C++ {#mainpage}
 
-Dmitigr Fcgi (hereinafter referred to as Fcgi) - is a reliable, easy-to-use
-and high-performance [FastCGI] protocol implementation written in C++. Fcgi
-is a part of the [Dmitigr Cefeika][dmitigr_cefeika] project.
+`dmitigr::fcgi` - is a [FastCGI] protocol implementation written in C++.
 
-**ATTENTION, this software is "beta" quality, and the API is a subject to change!**
-
-Documentation
-=============
-
-The [Doxygen]-generated documentation is located [here][dmitigr_fcgi_doc]. There
-is [overview class diagram][dmitigr_fcgi_doc_diagram].
-
-Hello, World
-============
+## Hello, World
 
 ```cpp
-#include <dmitigr/fcgi.hpp>
+#include <dmitigr/fcgi/fcgi.hpp>
 #include <iostream>
 
 int main()
@@ -41,11 +29,10 @@ int main()
 }
 ```
 
-Hello, Multithreaded World
-==========================
+## Hello, Multithreaded World
 
 ```cpp
-#include <dmitigr/fcgi.hpp>
+#include <dmitigr/fcgi/fcgi.hpp>
 #include <iostream>
 #include <thread>
 #include <vector>
@@ -94,22 +81,11 @@ int main()
 }
 ```
 
-Usage
-=====
+## Usage
 
-Please, see [Cefeika Usage][dmitigr_cefeika_usage] section for hints how to
-link the library to a project.
+Please, see [usage section][dmitigr_cpplipa_usage] for hints how to link the
+library to a project.
 
-Copyright
-=========
-
-Copyright (C) [Dmitry Igrishin][dmitigr_mail]
-
-[dmitigr_mail]: mailto:dmitigr@gmail.com
-[dmitigr_cefeika]: https://github.com/dmitigr/cefeika.git
-[dmitigr_cefeika_usage]: https://github.com/dmitigr/cefeika.git#usage
-[dmitigr_fcgi_doc]: http://dmitigr.ru/en/projects/cefeika/fcgi/doc/
-[dmitigr_fcgi_doc_diagram]: http://dmitigr.ru/en/projects/cefeika/fcgi/doc/dmitigr_fcgi_overview.violet.html
+[dmitigr_cpplipa_usage]: https://github.com/dmitigr/cpplipa.git#usage
 
 [FastCGI]: https://en.wikipedia.org/wiki/FastCGI
-[Doxygen]: http://doxygen.org/
