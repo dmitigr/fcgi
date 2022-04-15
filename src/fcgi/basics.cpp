@@ -33,105 +33,89 @@
 
 namespace dmitigr::fcgi::detail {
 
-/**
- * @brief A type of record.
- */
+/// A type of record.
 enum class Record_type : unsigned char {
-  /** A begin request record. */
+  /// A begin request record.
   begin_request = 1,
 
-  /** An abort request record. */
+  /// An abort request record.
   abort_request = 2,
 
-  /** An end of request record. */
+  /// An end of request record.
   end_request = 3,
 
-  /** See Stream_type::params. */
+  /// See Stream_type::params.
   params = static_cast<unsigned char>(Stream_type::params),
 
-  /** See Stream_type::in. */
+  /// See Stream_type::in.
   in = static_cast<unsigned char>(Stream_type::in),
 
-  /** See Stream_type::out. */
+  /// See Stream_type::out.
   out = static_cast<unsigned char>(Stream_type::out),
 
-  /** See Stream_type::err. */
+  /// See Stream_type::err.
   err = static_cast<unsigned char>(Stream_type::err),
 
-  /** See Stream_type::data. */
+  /// See Stream_type::data.
   data = static_cast<unsigned char>(Stream_type::data),
 
   /**
-   * A management record that is a query from a HTTP server about
+   * @brief A management record that is a query from a HTTP server about
    * specific variables within a FastCGI server (or an application).
    * (The FastCGI server may receive such a query record at any time.)
    */
   get_values = 9,
 
   /**
-   * A response to a get-values management record.
+   * @brief A response to a get-values management record.
    * (Only known variables can be included to the response.)
    */
   get_values_result = 10,
 
-  /** A response to an unknown management record. */
+  /// A response to an unknown management record.
   unknown_type = 11
 };
 
-/**
- * @brief A protocol-level status code.
- */
+/// A protocol-level status code.
 enum class Protocol_status : unsigned char {
-  /** A normal end of request. */
+  /// A normal end of request.
   request_complete = 0,
 
   /**
-   * Rejecting a new request when a HTTP server sends concurrent requests
-   * over one connection to a FastCGI server that is designed to process
-   * one request at a time per connection.
+   * @brief Rejecting a new request when a HTTP server sends concurrent
+   * requests over one connection to a FastCGI server that is designed to
+   * process one request at a time per connection.
    */
   cant_mpx_conn = 1,
 
   /**
-   * Rejecting a new request when an application runs out of some
+   * @brief Rejecting a new request when an application runs out of some
    * resource, e.g. database connections.
    */
   overloaded = 2,
 
   /**
-   * Rejecting a new request when a HTTP server has specified a
+   * @brief Rejecting a new request when a HTTP server has specified a
    * role that is unknown to a FastCGI server.
    */
   unknown_role = 3
 };
 
-/**
- * @brief A FastCGI record header.
- */
+/// A FastCGI record header.
 struct Header final {
-  /**
-   * @brief The special ID of a request that used by management records only.
-   */
+  /// The special ID of a request that used by management records only.
   constexpr static int null_request_id = 0;
 
-  /**
-   * @brief The maximum content length.
-   */
+  /// The maximum content length.
   constexpr static std::size_t max_content_length = 65535;
 
-  /**
-   * @brief The maximum padding length.
-   */
+  /// The maximum padding length.
   constexpr static std::size_t max_padding_length = 255;
 
-  /**
-   * @brief The default constructor.
-   */
+  /// The default constructor.
   Header() noexcept = default;
 
-  /**
-   * @brief Constructs by reading the header from `io`.
-   */
+  /// Constructs by reading the header from `io`.
   explicit Header(net::Descriptor* const io)
   {
     DMITIGR_ASSERT(io);
@@ -141,9 +125,7 @@ struct Header final {
     check_validity();
   }
 
-  /**
-   * @brief The constructor.
-   */
+  /// The constructor.
   Header(const Record_type record_type, const int request_id,
     const std::size_t content_len, const std::size_t padding_len)
     : record_type_{static_cast<unsigned char>(record_type)}
@@ -157,59 +139,45 @@ struct Header final {
       (padding_len <= max_padding_length));
   }
 
-  /**
-   * @brief The constructor.
-   */
+  /// The constructor.
   Header(const Record_type record_type, const int request_id,
     const std::size_t content_len)
     : Header{record_type, request_id, content_len,
       dmitigr::math::padding<std::size_t>(content_len, 8)}
   {}
 
-  /**
-   * @brief Checks the validity of the header.
-   */
+  /// Checks the validity of the header.
   void check_validity() const
   {
     if (protocol_version() != 1)
       throw Exception{"FastCGI protocol violation"};
   }
 
-  /**
-   * @returns The request ID.
-   */
+  /// @returns The request ID.
   int request_id() const noexcept
   {
     return (request_id_b1_ << 8) + request_id_b0_;
   }
 
-  /**
-   * @returns The content length.
-   */
+  /// @returns The content length.
   std::size_t content_length() const noexcept
   {
     return static_cast<std::size_t>(content_length_b1_ << 8) + content_length_b0_;
   }
 
-  /**
-   * @returns The padding length.
-   */
+  /// @returns The padding length.
   std::size_t padding_length() const noexcept
   {
     return padding_length_;
   }
 
-  /**
-   * @returns The protocol version.
-   */
+  /// @returns The protocol version.
   int protocol_version() const noexcept
   {
     return protocol_version_;
   }
 
-  /**
-   * @returns The type of record to which this header belongs.
-   */
+  /// @returns The type of record to which this header belongs.
   Record_type record_type() const noexcept
   {
     return Record_type{record_type_};
@@ -217,7 +185,7 @@ struct Header final {
 
   /**
    * @returns `true` if this header is represents a header
-   * of a management record, or `false` otherwise.
+   * of a management record.
    */
   bool is_management_record() const noexcept
   {
@@ -235,30 +203,22 @@ private:
   unsigned char reserved_{};
 };
 
-/**
- * @brief A FastCGI begin-request record body.
- */
+/// A FastCGI begin-request record body.
 struct Begin_request_body final {
-  /**
-   * @brief Control bits.
-   */
+  /// Control bits.
   enum class Flags : unsigned char {
     /**
-     * The bit that instructs a FastCGI server do not close a connection after
-     * responding to the request. (A HTTP server retains responsibility for the
-     * connection in this case.)
+     * @brief The bit that instructs a FastCGI server do not close a connection
+     * after responding to the request. (A HTTP server retains responsibility
+     * for the connection in this case.)
      */
     keep_conn = 1
   };
 
-  /**
-   * @brief The default constructor.
-   */
+  /// The default constructor.
   Begin_request_body() noexcept = default;
 
-  /**
-   * @brief Constructs by reading the record from `io`.
-   */
+  /// Constructs by reading the record from `io`.
   explicit Begin_request_body(net::Descriptor* const io)
   {
     DMITIGR_ASSERT(io);
@@ -267,17 +227,13 @@ struct Begin_request_body final {
       throw Exception{"FastCGI protocol violation"};
   }
 
-  /**
-   * @returns The role.
-   */
+  /// @returns The role.
   Role role() const noexcept
   {
     return Role{(role_b1_ << 8) + role_b0_};
   }
 
-  /**
-   * @returns `true` if the `Flags::keep_conn` flag is set, or `false` otherwise.
-   */
+  /// @returns `true` if the `Flags::keep_conn` flag is set.
   bool is_keep_conn() const noexcept
   {
     return (flags_ & static_cast<unsigned char>(Flags::keep_conn));
@@ -290,18 +246,12 @@ private:
   unsigned char reserved_[5]{0, 0, 0, 0, 0};
 };
 
-/**
- * @brief A FastCGI end-request body.
- */
+/// A FastCGI end-request body.
 struct End_request_body final {
-  /**
-   * @brief The default constructor.
-   */
+  /// The default constructor.
   End_request_body() noexcept = default;
 
-  /**
-   * @brief The constructor.
-   */
+  /// The constructor.
   End_request_body(const int application_status,
     const Protocol_status protocol_status) noexcept
     : application_status_b3_{static_cast<unsigned char>(
@@ -323,22 +273,15 @@ private:
   unsigned char protocol_status_{};
   unsigned char reserved_[3]{0, 0, 0};
 };
-
-/**
- * @brief A FastCGI end-request record.
- */
+/// A FastCGI end-request record.
 struct End_request_record final {
-  /**
-   * @brief The constructor.
-   */
+  /// The constructor.
   End_request_record(const Header header, const End_request_body body) noexcept
     : header_{header}
     , body_{body}
   {}
 
-  /**
-   * @brief The constructor.
-   */
+  /// The constructor.
   End_request_record(const int request_id, const int application_status,
     const Protocol_status protocol_status)
     : header_{Record_type::end_request, request_id, sizeof(body_), 0}
@@ -350,13 +293,9 @@ private:
   End_request_body body_;
 };
 
-/**
- * @brief A FastCGI unknown-type record body.
- */
+/// A FastCGI unknown-type record body.
 struct Unknown_type_body final {
-  /**
-   * @brief The constructor.
-   */
+  /// The constructor.
   explicit Unknown_type_body(const Record_type record_type) noexcept
     : record_type_{static_cast<unsigned char>(record_type)}
   {}
@@ -366,13 +305,9 @@ private:
   unsigned char reserved_[7]{0, 0, 0, 0, 0, 0, 0};
 };
 
-/**
- * @brief A FastCGI unknown-type record.
- */
+/// A FastCGI unknown-type record.
 struct Unknown_type_record final {
-  /**
-   * @brief The constructor.
-   */
+  /// The constructor.
   explicit Unknown_type_record(const Record_type record_type) noexcept
     : header_{detail::Record_type::unknown_type, detail::Header::null_request_id,
       sizeof(body_), 0}
@@ -390,14 +325,10 @@ private:
 // Names_values
 // -----------------------------------------------------------------------------
 
-/**
- * @brief A value type of Names_values container.
- */
+/// A value type of Names_values container.
 class Name_value final {
 public:
-  /**
-   * @brief The constructor.
-   */
+  /// The constructor.
   Name_value(std::unique_ptr<char[]> data,
     const std::size_t name_size, const std::size_t value_size) noexcept
     : data_{std::move(data)}
@@ -405,17 +336,13 @@ public:
     , value_size_{value_size}
   {}
 
-  /**
-   * @returns The name.
-   */
+  /// @returns The name.
   std::string_view name() const noexcept
   {
     return std::string_view{data_.get(), name_size_};
   }
 
-  /**
-   * @returns The value.
-   */
+  /// @returns The value.
   std::string_view value() const noexcept
   {
     return std::string_view{data_.get() + name_size_, value_size_};
@@ -427,14 +354,10 @@ private:
   std::size_t value_size_{};
 };
 
-/**
- * @brief A container of name-value pairs to store variable-length values.
- */
+/// A container of name-value pairs to store variable-length values.
 class Names_values final {
 public:
-  /**
-   * @brief The default constructor.
-   */
+  /// The default constructor.
   Names_values() noexcept = default;
 
   /**
@@ -502,17 +425,13 @@ public:
     }
   }
 
-  /**
-   * @returns The pair count.
-   */
+  /// @returns The pair count.
   std::size_t pair_count() const noexcept
   {
     return pairs_.size();
   }
 
-  /**
-   * @returns The pair index by the given `name`.
-   */
+  /// @returns The pair index by the given `name`.
   std::optional<std::size_t> pair_index(const std::string_view name) const noexcept
   {
     const auto b = cbegin(pairs_);
@@ -524,9 +443,7 @@ public:
     return i != e ? std::make_optional<std::size_t>(i - b) : std::nullopt;
   }
 
-  /**
-   * @returns The pair by the given `index`.
-   */
+  /// @returns The pair by the given `index`.
   const Name_value& pair(const std::size_t index) const noexcept
   {
     DMITIGR_ASSERT(index < pair_count());
@@ -546,9 +463,7 @@ public:
     pairs_.emplace_back(std::move(data), name_size, value_size);
   }
 
-  /**
-   * @overload
-   */
+  /// @overload
   void add(const char* const name, const char* const value)
   {
     DMITIGR_ASSERT(name && value);

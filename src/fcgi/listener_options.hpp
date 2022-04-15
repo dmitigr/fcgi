@@ -27,65 +27,59 @@
 
 namespace dmitigr::fcgi {
 
-/**
- * @brief FastCGI Listener options.
- */
+/// FastCGI Listener options.
 class Listener_options final {
 public:
-  /// @name Constructors
-  /// @{
-
 #ifdef _WIN32
   /**
    * @returns A new instance of the options for listeners of
    * Windows Named Pipes (WNP).
    *
-   * @param pipe_name - the pipe name.
+   * @param pipe_name The pipe name.
    *
    * @par Effects
-   * `endpoint()->communication_mode() == Communication_mode::wnp`.
+   * `endpoint().communication_mode() == Communication_mode::wnp`.
    */
   DMITIGR_FCGI_API explicit Listener_options(std::string pipe_name);
-#else
+#endif
+
   /**
    * @returns A new instance of the options for listeners of
    * Unix Domain Sockets (UDS).
    *
-   * @param path - the path to the socket.
-   * @param backlog - the maximum size of the queue of pending connections.
+   * @param path The path to the socket.
+   * @param backlog The maximum size of the queue of pending connections.
    *
    * @par Effects
-   * `endpoint()->communication_mode() == Communication_mode::uds`.
+   * `endpoint().communication_mode() == Communication_mode::uds`.
    */
-  DMITIGR_FCGI_API explicit Listener_options(std::filesystem::path path, int backlog);
-#endif
+  DMITIGR_FCGI_API explicit Listener_options(std::filesystem::path path,
+    int backlog);
+
   /**
    * @overload
    *
    * @returns A new instance of the options for listeners of network.
    *
-   * @param address - IPv4 or IPv6 address to use for binding on.
-   * @param port - the port number to use for binding on.
-   * @param backlog - the maximum size of the queue of pending connections.
+   * @param address The IPv4 or IPv6 address to use for binding on.
+   * @param port The port number to use for binding on.
+   * @param backlog The maximum size of the queue of pending connections.
    *
    * @par Requires
    * `port > 0`.
    *
    * @par Effects
-   * `endpoint()->communication_mode() == Communication_mode::net`.
+   * `endpoint().communication_mode() == Communication_mode::net`.
    */
-  DMITIGR_FCGI_API explicit Listener_options(std::string address, int port, int backlog);
+  DMITIGR_FCGI_API explicit Listener_options(std::string address,
+    int port, int backlog);
 
-  /// @}
-
-  /**
-   * @returns The endpoint identifier.
-   */
+  /// @returns The endpoint identifier.
   DMITIGR_FCGI_API const net::Endpoint& endpoint() const noexcept;
 
   /**
-   * @returns The value of backlog if the communication mode of the endpoint is
-   * not `Communication_mode::wnp`, or `std::nullopt` otherwise.
+   * @returns The value of backlog if the communication mode of the endpoint
+   * is not `Communication_mode::wnp`, or `std::nullopt` otherwise.
    */
   DMITIGR_FCGI_API std::optional<int> backlog() const noexcept;
 

@@ -21,14 +21,10 @@
 
 namespace dmitigr::fcgi::detail {
 
-/**
- * @brief The base implementation of the Server_connection.
- */
+/// The base implementation of the Server_connection.
 class iServer_connection : public Server_connection {
 public:
-  /**
-   * @brief The constructor.
-   */
+  /// The constructor.
   explicit iServer_connection(std::unique_ptr<net::Descriptor> io,
     const Role role, const int request_id, const bool is_keep_connection)
     : is_keep_connection_{is_keep_connection}

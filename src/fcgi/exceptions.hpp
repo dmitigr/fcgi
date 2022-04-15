@@ -21,11 +21,7 @@
 
 namespace dmitigr::fcgi {
 
-/**
- * @ingroup errors
- *
- * @brief The generic exception class.
- */
+/// The generic exception class.
 class Exception final : public dmitigr::Exception {
   using dmitigr::Exception::Exception;
 };

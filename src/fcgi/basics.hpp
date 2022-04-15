@@ -19,50 +19,46 @@
 
 namespace dmitigr::fcgi {
 
-/**
- * @brief A FastCGI role.
- */
+/// FastCGI role.
 enum class Role {
-  /** The Responder role. */
+  /// The Responder role.
   responder = 1,
 
-  /** The Authorizer role. */
+  /// The Authorizer role.
   authorizer = 2,
 
-  /** The Filter role. */
+  /// The Filter role.
   filter = 3
 };
 
-/**
- * @brief Represents a type of stream.
- */
+/// Represents a type of stream.
 enum class Stream_type {
   /**
-   * A name-value pair stream used in sending name-value
+   * @brief A name-value pair stream used in sending name-value
    * pairs from a FastCGI client to a FastCGI server.
    */
   params = 4,
 
   /**
-   * A stream used in sending arbitrary data
+   * @brief A stream used in sending arbitrary data
    * from a FastCGI client to a FastCGI server.
    */
   in = 5,
 
   /**
-   * A stream used in sending arbitrary data
+   * @brief A stream used in sending arbitrary data
    * from a FastCGI server to a FastCGI client.
    */
   out = 6,
 
   /**
-   * A stream used in sending error data
+   * @brief A stream used in sending error data
    * from a FastCGI server to a FastCGI client.
    */
   err = 7,
 
   /**
-   * A stream used in sending additional data
+   * @brief A stream used in sending additional data
    * from a FastCGI client to a FastCGI server.
    */
   data = 8

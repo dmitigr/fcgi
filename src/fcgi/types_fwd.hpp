@@ -17,13 +17,13 @@
 #ifndef DMITIGR_FCGI_TYPES_FWD_HPP
 #define DMITIGR_FCGI_TYPES_FWD_HPP
 
-/**
- * @brief The API.
- */
+/// The API.
 namespace dmitigr::fcgi {
 
 enum class Role;
 enum class Stream_type;
+
+class Exception;
 
 class Listener;
 class Listener_options;
@@ -38,10 +38,19 @@ class Stream;
 class Istream;
 class Ostream;
 
-/**
- * @brief The implementation details.
- */
+/// The implementation details.
 namespace detail {
+enum class Record_type : unsigned char;
+enum class Protocol_status : unsigned char;
+struct Header;
+struct Begin_request_body;
+struct End_request_body;
+struct End_request_record;
+struct Unknown_type_body;
+struct Unknown_type_record;
+class Name_value;
+class Names_values;
+
 class iListener;
 class iListener_options;
 class iServer_connection;

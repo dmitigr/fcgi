@@ -22,12 +22,12 @@ namespace dmitigr::fcgi {
 DMITIGR_FCGI_INLINE Listener_options::Listener_options(std::string pipe_name)
   : options_{std::move(pipe_name)}
 {}
-#else
+#endif
+
 DMITIGR_FCGI_INLINE Listener_options::Listener_options(std::filesystem::path path,
   const int backlog)
   : options_{std::move(path), backlog}
 {}
-#endif
 
 DMITIGR_FCGI_INLINE Listener_options::Listener_options(std::string address,
   const int port, const int backlog)

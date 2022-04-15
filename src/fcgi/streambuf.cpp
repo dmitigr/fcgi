@@ -131,7 +131,7 @@ public:
    */
   bool is_reader() const
   {
-    return (type_ == Type::in || type_ == Type::params || type_ == Type::data);
+    return type_ == Type::in || type_ == Type::params || type_ == Type::data;
   }
 
   /**
@@ -516,7 +516,8 @@ private:
    * @throws Exception in case of (1) or on protocol violation.
    *
    * @par Effects
-   * In all cases: `(unread_content_length_ == header.content_length() && unread_padding_length_ == header.padding_length())`;
+   * In all cases: `(unread_content_length_ == header.content_length()) &&
+   * (unread_padding_length_ == header.padding_length())`.
    * In case (2): the effects of underflow().
    */
   Process_header_result process_header(const detail::Header header)

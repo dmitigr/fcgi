@@ -27,23 +27,18 @@
 
 namespace dmitigr::fcgi::detail {
 
-/**
- * @brief The Server_connection implementation based on stack-allocated buffers.
- */
+/// The Server_connection implementation based on stack-allocated buffers.
 class stack_buffers_Server_connection final : public iServer_connection {
 public:
-  /** The size of the buffer of Stream_type::in. */
+  /// The size of the buffer of Stream_type::in.
   static constexpr std::size_t in_buffer_size  = 16384;
 
-  /** The size of the buffer of Stream_type::out. */
+  /// The size of the buffer of Stream_type::out.
   static constexpr std::size_t out_buffer_size = 65528;
 
-  /** The size of the buffer of Stream_type::err. */
+  /// The size of the buffer of Stream_type::err.
   static constexpr std::size_t err_buffer_size = 65528;
 
-  /**
-   * @brief The destructor.
-   */
   ~stack_buffers_Server_connection() override
   {
     try {
@@ -67,9 +62,6 @@ public:
     }
   }
 
-  /**
-   * @brief The constructor.
-   */
   explicit stack_buffers_Server_connection(std::unique_ptr<net::Descriptor> io,
     const Role role,
     const int request_id,

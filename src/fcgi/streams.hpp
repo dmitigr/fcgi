@@ -25,23 +25,19 @@
 
 namespace dmitigr::fcgi {
 
-/**
- * @brief A data stream.
- */
+/// A data stream.
 class Stream {
 public:
   /// The destructor.
   virtual ~Stream() noexcept = default;
 
-  /**
-   * @returns The controlled Streambuf instance.
-   */
-  virtual Streambuf& streambuf() const noexcept = 0;
+  /// @returns The controlled Streambuf instance.
+  virtual const Streambuf& streambuf() const noexcept = 0;
 
-  /**
-   * @returns `true` if the stream is closed (i.e. unusable anymore), or
-   * `false` otherwise.
-   */
+  /// @overload
+  virtual Streambuf& streambuf() noexcept = 0;
+
+  /// @returns `true` if the stream is closed (i.e. unusable anymore).
   virtual bool is_closed() const noexcept = 0;
 
   /**
@@ -64,9 +60,7 @@ private:
   Stream() noexcept = default;
 };
 
-/**
- * @brief An input data stream.
- */
+/// An input data stream.
 class Istream : public Stream, public std::istream {
 private:
   friend detail::iIstream;
@@ -74,9 +68,7 @@ private:
   using std::istream::istream;
 };
 
-/**
- * @brief An output data stream.
- */
+/// An output data stream.
 class Ostream : public Stream, public std::ostream {
 private:
   friend detail::iOstream;
@@ -84,14 +76,10 @@ private:
   using std::ostream::ostream;
 };
 
-/**
- * @brief Inserts `CRLF` sequence into the `ostr`.
- */
+/// Inserts `CRLF` sequence into the `ostr`.
 DMITIGR_FCGI_API std::ostream& crlf(std::ostream& ostr);
 
-/**
- * @brief Inserts `CRLFCRLF` sequence into the `ostr`.
- */
+/// Inserts `CRLFCRLF` sequence into the `ostr`.
 DMITIGR_FCGI_API std::ostream& crlfcrlf(std::ostream& ostr);
 
 } // namespace dmitigr::fcgi

@@ -25,34 +25,22 @@
 
 namespace dmitigr::fcgi {
 
-/**
- * @brief A FastCGI connection.
- */
+/// A FastCGI connection.
 class Connection {
 public:
-  /**
-   * @brief The destructor.
-   */
+  /// The destructor.
   virtual ~Connection() noexcept = default;
 
-  /**
-   * @returns The request identifier. (Always a non-zero value.)
-   */
+  /// @returns The request identifier. (Always a non-zero value.)
   virtual int request_id() const noexcept = 0;
 
-  /**
-   * @returns The role of a FastCGI application that serves this connection.
-   */
+  /// @returns The role of a FastCGI application that serves this connection.
   virtual Role role() const noexcept = 0;
 
-  /**
-   * @returns The number of parameters.
-   */
+  /// @returns The number of parameters.
   virtual std::size_t parameter_count() const noexcept = 0;
 
-  /**
-   * @returns The parameter index if presents.
-   */
+  /// @returns The parameter index if presents.
   virtual std::optional<std::size_t>
   parameter_index(std::string_view name) const noexcept = 0;
 
@@ -84,9 +72,7 @@ public:
    */
   virtual void close() = 0;
 
-  /**
-   * @returns `true` if the connection is closed.
-   */
+  /// @returns `true` if the connection is closed.
   virtual bool is_closed() const noexcept = 0;
 
 private:

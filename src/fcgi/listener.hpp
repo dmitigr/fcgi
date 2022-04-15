@@ -25,24 +25,16 @@
 
 namespace dmitigr::fcgi {
 
-/**
- * @brief A FastCGI listener.
- */
+/// A FastCGI listener.
 class Listener final {
 public:
-  /**
-   * @brief Constructs the listener.
-   */
+  /// Constructs the listener.
   DMITIGR_FCGI_API explicit Listener(Listener_options options);
 
-  /**
-   * @returns Options of the listener.
-   */
+  /// @returns Options of the listener.
   DMITIGR_FCGI_API const Listener_options& options() const noexcept;
 
-  /**
-   * @returns `true` if the listener is listening for new client connections.
-   */
+  /// @returns `true` if the listener is listening for new client connections.
   DMITIGR_FCGI_API bool is_listening() const noexcept;
 
   /**
@@ -56,8 +48,8 @@ public:
   /**
    * @brief Waits for a next connection to accept.
    *
-   * @param timeout - maximum amount of time to wait before return.
-   * A special value of `-1` denotes "eternity".
+   * @param timeout Maximum amount of time to wait before return. A special
+   * value of `-1` denotes "eternity".
    *
    * @returns `true` if the connection is ready to be accepted before
    * the `timeout` elapses.
@@ -85,9 +77,7 @@ public:
    */
   DMITIGR_FCGI_API std::unique_ptr<Server_connection> accept();
 
-  /**
-   * @brief Stops listening.
-   */
+  /// Stops listening.
   DMITIGR_FCGI_API void close();
 
 private:

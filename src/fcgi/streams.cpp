@@ -22,9 +22,7 @@
 
 namespace dmitigr::fcgi::detail {
 
-/**
- * @brief The base implementation of Istream.
- */
+/// The base implementation of Istream.
 class iIstream : public Istream {
 private:
   friend server_Istream;
@@ -32,14 +30,9 @@ private:
   using Istream::Istream;
 };
 
-/**
- * @brief The Istream implementation for a FastCGI server.
- */
+/// The Istream implementation for a FastCGI server.
 class server_Istream final : public iIstream {
 public:
-  /**
-   * @brief The constructor.
-   */
   server_Istream(iServer_connection* const connection,
     char_type* const buffer, const std::streamsize buffer_size)
     : iIstream{&streambuf_}
@@ -60,7 +53,12 @@ public:
     }
   }
 
-  server_Streambuf& streambuf() const noexcept override
+  const server_Streambuf& streambuf() const noexcept override
+  {
+    return streambuf_;
+  }
+
+  server_Streambuf& streambuf() noexcept override
   {
     return streambuf_;
   }
@@ -76,14 +74,12 @@ public:
   }
 
 private:
-  mutable server_Streambuf streambuf_;
+  server_Streambuf streambuf_;
 };
 
 // =============================================================================
 
-/**
- * @brief The base implementation of Ostream.
- */
+/// The base implementation of Ostream.
 class iOstream : public Ostream {
 private:
   friend server_Ostream;
@@ -91,14 +87,9 @@ private:
   using Ostream::Ostream;
 };
 
-/**
- * @brief The Ostream implementation for a FastCGI server.
- */
+/// The Ostream implementation for a FastCGI server.
 class server_Ostream final : public iOstream {
 public:
-  /**
-   * @brief The constructor.
-   */
   server_Ostream(iServer_connection* const connection, char_type* const buffer,
     const std::streamsize buffer_size, const Stream_type type)
     : iOstream{&streambuf_}
@@ -108,7 +99,12 @@ public:
       stream_type() == Stream_type::err);
   }
 
-  server_Streambuf& streambuf() const noexcept override
+  const server_Streambuf& streambuf() const noexcept override
+  {
+    return streambuf_;
+  }
+
+  server_Streambuf& streambuf() noexcept override
   {
     return streambuf_;
   }
@@ -124,7 +120,7 @@ public:
   }
 
 private:
-  mutable server_Streambuf streambuf_;
+  server_Streambuf streambuf_;
 };
 
 } // namespace dmitigr::fcgi::detail

@@ -21,24 +21,16 @@
 
 namespace dmitigr::fcgi {
 
-/**
- * @brief A FastCGI server connection.
- */
+/// A FastCGI server connection.
 class Server_connection : public Connection {
 public:
-  /**
-   * @returns The input stream, associated with the input data stream.
-   */
+  /// @returns The input stream, associated with the input data stream.
   virtual Istream& in() noexcept = 0;
 
-  /**
-   * @returns The output stream, associated with the output data stream.
-   */
+  /// @returns The output stream, associated with the output data stream.
   virtual Ostream& out() noexcept = 0;
 
-  /**
-   * @returns The output stream, associated with the error data stream.
-   */
+  /// @returns The output stream, associated with the error data stream.
   virtual Ostream& err() noexcept = 0;
 
   /**

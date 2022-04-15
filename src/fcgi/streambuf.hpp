@@ -23,9 +23,7 @@
 
 namespace dmitigr::fcgi {
 
-/**
- * @brief A FastCGI stream buffer.
- */
+/// A FastCGI stream buffer.
 class Streambuf : public std::streambuf {
 protected:
 
@@ -33,11 +31,11 @@ protected:
   /// @{
 
   /**
+   * @returns `this`.
+   *
    * @par Requires
    * The valid memory area in range of [buffer, buffer + size) and
-   * `(buffer && (2048 <= size && size <= 65528))`.
-   *
-   * @returns `this`.
+   * `buffer && (2048 <= size && size <= 65528)`.
    *
    * @throws Exception.
    *
@@ -48,9 +46,9 @@ protected:
 
   /**
    * @brief Sends the put area to a FastCGI client if
-   * `(pbase() != nullptr && pbase() != pptr())`.
+   * `pbase() && pbase() != pptr()`.
    *
-   * @returns Zero on success, or non-zero otherwise.
+   * @returns `0` on success.
    *
    * @throws Exception.
    *
@@ -85,8 +83,8 @@ protected:
   /// @{
 
   /**
-   * Consumes the put area. Also consumes `c` if
-   * `(traits_type::eq_int_type(c, traits_type::eof()) == false)`.
+   * @brief Consumes the put area. Also consumes `c` if
+   * `traits_type::eq_int_type(c, traits_type::eof()) == false`.
    *
    * @returns Some value other than `traits_type::eof()` to indicate success,
    * or `traits_type::eof()` to indicate failure.
