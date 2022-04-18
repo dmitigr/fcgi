@@ -29,7 +29,7 @@ namespace dmitigr::fcgi {
 class Connection {
 public:
   /// The destructor.
-  virtual ~Connection() noexcept = default;
+  virtual ~Connection() = default;
 
   /// @returns The request identifier. (Always a non-zero value.)
   virtual int request_id() const noexcept = 0;
@@ -78,7 +78,7 @@ public:
 private:
   friend Server_connection;
 
-  Connection() noexcept = default;
+  Connection() = default;
 };
 
 } // namespace dmitigr::fcgi

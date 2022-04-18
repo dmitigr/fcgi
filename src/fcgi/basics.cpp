@@ -113,7 +113,7 @@ struct Header final {
   constexpr static std::size_t max_padding_length = 255;
 
   /// The default constructor.
-  Header() noexcept = default;
+  Header() = default;
 
   /// Constructs by reading the header from `io`.
   explicit Header(net::Descriptor* const io)
@@ -216,7 +216,7 @@ struct Begin_request_body final {
   };
 
   /// The default constructor.
-  Begin_request_body() noexcept = default;
+  Begin_request_body() = default;
 
   /// Constructs by reading the record from `io`.
   explicit Begin_request_body(net::Descriptor* const io)
@@ -249,7 +249,7 @@ private:
 /// A FastCGI end-request body.
 struct End_request_body final {
   /// The default constructor.
-  End_request_body() noexcept = default;
+  End_request_body() = default;
 
   /// The constructor.
   End_request_body(const int application_status,
@@ -358,7 +358,7 @@ private:
 class Names_values final {
 public:
   /// The default constructor.
-  Names_values() noexcept = default;
+  Names_values() = default;
 
   /**
    * @brief Constructs by reading the given `stream`.

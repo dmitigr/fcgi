@@ -87,8 +87,6 @@ private:
   friend Listener;
 
   net::Listener_options options_;
-
-  Listener_options() noexcept = default;
 };
 
 } // namespace dmitigr::fcgi

@@ -52,7 +52,7 @@ public:
 private:
   friend detail::iServer_connection;
 
-  Server_connection() noexcept = default;
+  Server_connection() = default;
 };
 
 } // namespace dmitigr::fcgi

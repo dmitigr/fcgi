@@ -29,7 +29,7 @@ namespace dmitigr::fcgi {
 class Stream {
 public:
   /// The destructor.
-  virtual ~Stream() noexcept = default;
+  virtual ~Stream() = default;
 
   /// @returns The controlled Streambuf instance.
   virtual const Streambuf& streambuf() const noexcept = 0;
@@ -57,7 +57,7 @@ private:
   friend Istream;
   friend Ostream;
 
-  Stream() noexcept = default;
+  Stream() = default;
 };
 
 /// An input data stream.

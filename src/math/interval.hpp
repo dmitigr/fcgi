@@ -47,7 +47,7 @@ public:
   using Type = Interval_type;
 
   /// Constructs closed [{},{}] interval.
-  Interval() noexcept = default;
+  Interval() = default;
 
   /**
    * @brief Constructs closed [min, max] interval.

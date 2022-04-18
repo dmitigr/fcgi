@@ -18,7 +18,7 @@
 # Info
 # ------------------------------------------------------------------------------
 
-dmitigr_cpplipa_set_library_info(fcgi 1 0 0 "FastCGI implementation")
+dmitigr_cpplipa_set_library_info(fcgi 1 0 0 "FastCGI library")
 
 # ------------------------------------------------------------------------------
 # Sources

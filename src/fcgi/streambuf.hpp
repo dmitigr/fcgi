@@ -101,7 +101,7 @@ protected:
 private:
   friend detail::iStreambuf;
 
-  Streambuf() noexcept = default;
+  Streambuf() = default;
 };
 
 } // namespace dmitigr::fcgi
